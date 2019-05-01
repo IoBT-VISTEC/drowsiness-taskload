@@ -72,6 +72,19 @@ public class JFrame extends javax.swing.JFrame {
         return false;
     }
     
+    public void clearTransactionPage(){
+        accountTextField.setText("");
+        ownerTextField.setText("");
+        amountTextField.setText("");
+        transferTextField.setText("");
+        enterTxIdTextField.setText("");
+    }
+    
+    public void clearStaffPage(){
+        staffIdTextField.setText("");
+        staffPwdField.setText("");
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -470,6 +483,7 @@ public class JFrame extends javax.swing.JFrame {
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
         // TODO add your handling code here:
+        clearTransactionPage();
         card.show(mainPanel, "staffPanel");
     }//GEN-LAST:event_confirmButtonActionPerformed
 
@@ -483,11 +497,13 @@ public class JFrame extends javax.swing.JFrame {
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
+        
         card.show(mainPanel, "transactionPanel");
     }//GEN-LAST:event_goButtonActionPerformed
 
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
         // TODO add your handling code here:
+        clearTransactionPage();
         card.show(mainPanel, "staffPanel");
     }//GEN-LAST:event_reportButtonActionPerformed
 
@@ -497,6 +513,7 @@ public class JFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         }else if(staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())){
             card.show(mainPanel, "companyPanel");
+            clearStaffPage();
         }else{
             JOptionPane.showMessageDialog(rootPane, "Username or password is not correct!", "Error", ERROR_MESSAGE);
         }
@@ -505,6 +522,7 @@ public class JFrame extends javax.swing.JFrame {
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         // TODO add your handling code here:
+        clearStaffPage();
         card.show(mainPanel, "transactionPanel");
     }//GEN-LAST:event_cancelButtonActionPerformed
 
