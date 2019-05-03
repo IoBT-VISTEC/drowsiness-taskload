@@ -33,6 +33,7 @@ public final class GUIClass extends javax.swing.JFrame {
     private static StaffAccount staff;
     private static ActionListener[] actions;
     private static Timer timer;
+    private static MainCore mainCore;
 
     public GUIClass() {
         initComponents();
@@ -40,9 +41,9 @@ public final class GUIClass extends javax.swing.JFrame {
         setTableHeader();
         setTableData();
         initActions();
-       
-        for(int i = 0; i < actions.length;i++){
-            timer = new Timer(3000*(i+1), actions[i]);
+
+        for (int i = 0; i < actions.length; i++) {
+            timer = new Timer(3000 * (i + 1), actions[i]);
             timer.setRepeats(false);
             timer.start();
         }
@@ -103,8 +104,8 @@ public final class GUIClass extends javax.swing.JFrame {
         staffIdTextField.setText("");
         staffPwdField.setText("");
     }
-    
-    public void initActions(){
+
+    public void initActions() {
         actions = new ActionListener[3];
         actions[0] = (ActionEvent e) -> {
             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -589,9 +590,17 @@ public final class GUIClass extends javax.swing.JFrame {
 
     private void goButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton2ActionPerformed
         // TODO add your handling code here:
+        try {
+            int number = Integer.parseInt(enterTxIdTextField.getText());
+            if (!isTxidCorrect(number)) {
+                JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException ne) {
+            JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Erro", ERROR_MESSAGE);
+        }/*
         if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
             JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
-        }
+        }*/
 
 
     }//GEN-LAST:event_goButton2ActionPerformed
@@ -632,28 +641,30 @@ public final class GUIClass extends javax.swing.JFrame {
         samples.add(new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
         for (int i = 0; i < 50; i++) {
             String type, bank;
-            if(i % 5 == 0){
+            if (i % 5 == 0) {
                 bank = "SCB";
-            }else if(i % 3 == 0){
+            } else if (i % 3 == 0) {
                 bank = "TMB";
-            }else if(i % 2 == 0){
+            } else if (i % 2 == 0) {
                 bank = "KBANK";
-            }else{
+            } else {
                 bank = "KTB";
             }
-            if(i % 2 == 0){
+            if (i % 2 == 0) {
                 type = "Transaction";
-            }else{
+            } else {
                 type = "Credit";
             }
             samples.add(new Transaction(1137 + i, type, bank, "11132334" + i, "Dummy " + i, 100 + i, 50 + i));
         }
 
+        mainCore = new MainCore();
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new GUIClass().setVisible(true);
-
+                System.out.println(mainCore.key);
             }
         });
 
