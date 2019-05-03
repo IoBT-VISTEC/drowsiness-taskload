@@ -5,7 +5,8 @@
  */
 package DrowsinessApp;
 
+import processing.core.PApplet;
 
-public class Main {
+public class MainCore extends PApplet {
     
 }

@@ -6,16 +6,15 @@
 package DrowsinessApp;
 
 import java.awt.CardLayout;
-import java.awt.Font;
-import java.awt.font.TextAttribute;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import javax.swing.JTable;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -24,67 +23,126 @@ import javax.swing.table.TableColumnModel;
  *
  * @author guygu
  */
-public class JFrame extends javax.swing.JFrame {
+public final class GUIClass extends javax.swing.JFrame {
 
     /**
      * Creates new form JFrame
      */
-    
     private static CardLayout card;
     private static List<Transaction> samples;
     private static StaffAccount staff;
-    
-    public JFrame() {
+    private static ActionListener[] actions;
+    private static Timer timer;
+
+    public GUIClass() {
         initComponents();
-        card = (CardLayout)mainPanel.getLayout();
-        setTable();
+        card = (CardLayout) mainPanel.getLayout();
+        setTableHeader();
+        setTableData();
+        initActions();
+       
+        for(int i = 0; i < actions.length;i++){
+            timer = new Timer(3000*(i+1), actions[i]);
+            timer.setRepeats(false);
+            timer.start();
+        }
     }
-    
-    public void setTable(){
+
+    public void setTableData() {
+        DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+        model.setRowCount(0);
+        Collections.shuffle(samples);
+        for (int i = 0; i < samples.size(); i++) {
+            model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+        }
+    }
+
+    public void setTableData(JTable txTable, int num) {
+        DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+        model.setRowCount(0);
+        Collections.shuffle(samples);
+        for (int i = 0; i < num; i++) {
+            model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+        }
+    }
+
+    public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
         //txTable = new JTable(new DefaultTableModel(new Object[]{"Transaction ID", "Type", "Bank", "Bank Account"}, 0));
-    
+
         JTableHeader th = txTable.getTableHeader();
         TableColumnModel tcm = th.getColumnModel();
-        for(int i = 0; i < columnNames.length;i++){
+        for (int i = 0; i < columnNames.length; i++) {
             tcm.getColumn(i).setHeaderValue(columnNames[i]);
         }
         th.repaint();
-        
-        DefaultTableModel model = (DefaultTableModel)txTable.getModel();
-        for(int i = 0;i < samples.size(); i++){
-            model.insertRow(i, new Object[]{samples.get(i).getId(),samples.get(i).getType(),samples.get(i).getBank(),samples.get(i).getAccount()});
-        }
-        //model.insertRow(0,new Object[]{samples.get(0).getId(),samples.get(0).getType(),samples.get(0).getBank(),samples.get(0).getAccount()});
-        //model.insertRow(1,new Object[]{samples.get(1).getId(),samples.get(1).getType(),samples.get(1).getBank(),samples.get(1).getAccount()});
     }
-    
-    public boolean isTxidCorrect(int txid){
+
+    public boolean isTxidCorrect(int txid) {
         for (DrowsinessApp.Transaction tx : samples) {
-            if(tx.getId() == txid){
+            if (tx.getId() == txid) {
                 accountTextField.setText(tx.getAccount());
                 ownerTextField.setText(tx.getOwner());
-                amountTextField.setText(""+tx.getAmountDue());
-                transferTextField.setText(""+tx.getAmountTransfer());
+                amountTextField.setText("" + tx.getAmountDue());
+                transferTextField.setText("" + tx.getAmountTransfer());
                 return true;
             }
         }
         return false;
     }
-    
-    public void clearTransactionPage(){
+
+    public void clearTransactionPage() {
         accountTextField.setText("");
         ownerTextField.setText("");
         amountTextField.setText("");
         transferTextField.setText("");
         enterTxIdTextField.setText("");
     }
-    
-    public void clearStaffPage(){
+
+    public void clearStaffPage() {
         staffIdTextField.setText("");
         staffPwdField.setText("");
     }
     
+    public void initActions(){
+        actions = new ActionListener[3];
+        actions[0] = (ActionEvent e) -> {
+            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+            model.setRowCount(0);
+            Collections.shuffle(samples);
+            for (int i = 0; i < 18; i++) {
+                model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+            }
+        };
+
+        actions[1] = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+                model.setRowCount(0);
+                Collections.shuffle(samples);
+                for (int i = 0; i < 10; i++) {
+                    model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+                }
+            }
+        };
+
+        actions[2] = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+                model.setRowCount(0);
+                Collections.shuffle(samples);
+                for (int i = 0; i < 3; i++) {
+                    model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+                }
+            }
+        };
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -127,6 +185,7 @@ public class JFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setResizable(false);
 
         mainPanel.setLayout(new java.awt.CardLayout());
 
@@ -142,6 +201,7 @@ public class JFrame extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        txTable.setEnabled(false);
         jScrollPane1.setViewportView(txTable);
 
         goButton.setBackground(new java.awt.Color(153, 204, 255));
@@ -493,11 +553,12 @@ public class JFrame extends javax.swing.JFrame {
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
         // TODO add your handling code here:
+        setTableData();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
-        
+
         card.show(mainPanel, "transactionPanel");
     }//GEN-LAST:event_goButtonActionPerformed
 
@@ -509,15 +570,15 @@ public class JFrame extends javax.swing.JFrame {
 
     private void goButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton3ActionPerformed
         // TODO add your handling code here:
-        if(staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0){
+        if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
-        }else if(staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())){
+        } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
             card.show(mainPanel, "companyPanel");
             clearStaffPage();
-        }else{
+        } else {
             JOptionPane.showMessageDialog(rootPane, "Username or password is not correct!", "Error", ERROR_MESSAGE);
         }
-        
+
     }//GEN-LAST:event_goButton3ActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
@@ -528,11 +589,11 @@ public class JFrame extends javax.swing.JFrame {
 
     private void goButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton2ActionPerformed
         // TODO add your handling code here:
-        if(enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))){
+        if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
             JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
         }
-        
-      
+
+
     }//GEN-LAST:event_goButton2ActionPerformed
 
     /**
@@ -552,31 +613,50 @@ public class JFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(JFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(JFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(JFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
-        
+        //</editor-fold>
+
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
         samples = new ArrayList<>();
-        samples.add(new Transaction(1134, "Transaction", "SCB", "11111111112","Luke Skywalker", 65535, 56636));
-        samples.add(new Transaction(1335, "Credit", "KTB", "11131313111","Someone", 99.99, 9.99));
+        samples.add(new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
+        samples.add(new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
         samples.add(new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        
+        for (int i = 0; i < 50; i++) {
+            String type, bank;
+            if(i % 5 == 0){
+                bank = "SCB";
+            }else if(i % 3 == 0){
+                bank = "TMB";
+            }else if(i % 2 == 0){
+                bank = "KBANK";
+            }else{
+                bank = "KTB";
+            }
+            if(i % 2 == 0){
+                type = "Transaction";
+            }else{
+                type = "Credit";
+            }
+            samples.add(new Transaction(1137 + i, type, bank, "11132334" + i, "Dummy " + i, 100 + i, 50 + i));
+        }
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new JFrame().setVisible(true);
+                new GUIClass().setVisible(true);
+
             }
         });
-        
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
