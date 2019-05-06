@@ -10,6 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,13 +72,12 @@ public final class GUIClass extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 tmp = new Timestamp(System.currentTimeMillis());
-                System.out.println(tmp.getTime());
                 if (tmp.getTime() % 10 == 0) {
                     cursorLocations.add(new Point(e.getX(), e.getY(), tmp));
-                    System.out.println(cursorLocations.get(cursorLocations.size() - 1) + " is added");
                 }
             }
         });
+
         for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * i, actions[i]);
             timer.setRepeats(false);
@@ -180,6 +182,35 @@ public final class GUIClass extends JFrame {
                 }
             }
         };
+    }
+    
+    public void saveKeyPressed(){
+        System.out.println("Save");
+    }
+    
+    public void saveCursorLocation(){
+        String fileName = cursorLocations.get(0).fileName();
+        try(PrintWriter writer = new PrintWriter(new File(fileName+"_cursor.csv"))){
+            StringBuilder sb = new StringBuilder();
+            sb.append("Timstamp");
+            sb.append(',');
+            sb.append("X");
+            sb.append(',');
+            sb.append("Y");
+            sb.append('\n');
+            for(Point p: cursorLocations){
+                sb.append(p.getTimePoint().toLocalDateTime());
+                sb.append(',');
+                sb.append(p.getX());
+                sb.append(',');
+                sb.append(p.getY());
+                sb.append('\n');
+            }
+            writer.write(sb.toString());
+            System.out.println(fileName + " is writed!");
+        }catch(FileNotFoundException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -617,9 +648,7 @@ public final class GUIClass extends JFrame {
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
-        cursorLocations.forEach((p) -> {
-            System.out.println(p);
-        });
+        saveCursorLocation();
         card.show(mainPanel, "transactionPanel");
         txDetialPanel.setVisible(false);
         transactionLabel.setVisible(false);
