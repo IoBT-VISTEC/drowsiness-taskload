@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import javax.swing.JTable;
@@ -18,12 +19,15 @@ import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
+import processing.awt.PSurfaceAWT;
+import processing.awt.PSurfaceAWT.SmoothCanvas;
+import processing.core.PSurface;
 
 /**
  *
  * @author guygu
  */
-public final class GUIClass extends javax.swing.JFrame {
+public final class GUIClass extends JFrame {
 
     /**
      * Creates new form JFrame
@@ -33,15 +37,25 @@ public final class GUIClass extends javax.swing.JFrame {
     private static StaffAccount staff;
     private static ActionListener[] actions;
     private static Timer timer;
-    private static MainCore mainCore;
+    public MainCore mc;
+    private PSurface ms;
+    private SmoothCanvas msc;
 
     public GUIClass() {
         initComponents();
+        //mainCore.init();
+        //add(mainCore);
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
         initActions();
-
+        
+        mc = new MainCore();
+        ms = mc.getInitSurface();
+        ms.setSize(570,480);
+        msc = (SmoothCanvas) ms.getNative();
+        mainPanel.add(msc);
+        
         for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * (i + 1), actions[i]);
             timer.setRepeats(false);
@@ -86,6 +100,7 @@ public final class GUIClass extends javax.swing.JFrame {
                 ownerTextField.setText(tx.getOwner());
                 amountTextField.setText("" + tx.getAmountDue());
                 transferTextField.setText("" + tx.getAmountTransfer());
+
                 return true;
             }
         }
@@ -188,6 +203,7 @@ public final class GUIClass extends javax.swing.JFrame {
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setResizable(false);
 
+        mainPanel.setPreferredSize(new java.awt.Dimension(570, 480));
         mainPanel.setLayout(new java.awt.CardLayout());
 
         txTable.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
@@ -559,7 +575,6 @@ public final class GUIClass extends javax.swing.JFrame {
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
-
         card.show(mainPanel, "transactionPanel");
     }//GEN-LAST:event_goButtonActionPerformed
 
@@ -632,7 +647,7 @@ public final class GUIClass extends javax.swing.JFrame {
         }
         //</editor-fold>
         //</editor-fold>
-
+        
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
         samples = new ArrayList<>();
@@ -658,16 +673,13 @@ public final class GUIClass extends javax.swing.JFrame {
             samples.add(new Transaction(1137 + i, type, bank, "11132334" + i, "Dummy " + i, 100 + i, 50 + i));
         }
 
-        mainCore = new MainCore();
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new GUIClass().setVisible(true);
-                System.out.println(mainCore.key);
             }
         });
-
+        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
