@@ -28,15 +28,14 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PSurface;
-import java.util.TimerTask;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author guygu
  */
 public final class GUIClass extends JFrame {
@@ -54,7 +53,9 @@ public final class GUIClass extends JFrame {
     private SmoothCanvas msc;
     private List<Point> cursorLocations;
     private List<KeyClass> keysPressed;
-    
+    private String startTime;
+    private int[] numberOfTx = {15, 8, 3};
+
     public GUIClass() {
         initComponents();
         txTable.setDefaultEditor(Object.class, null);
@@ -64,13 +65,13 @@ public final class GUIClass extends JFrame {
         initActions();
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
-        
+        startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
         mc = new MainCore();
         ms = mc.getInitSurface();
         ms.setSize(570, 480);
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
-        
+
         /*companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
             String tmp;
             
@@ -82,53 +83,60 @@ public final class GUIClass extends JFrame {
                 }
             }
         });*/
-        /*java.util.Timer timer2 = new java.util.Timer();
-        timer2.schedule(new TimerTask() {
-            java.awt.Point p;
-            String tmp;
+
+        java.util.Timer coreTime = new java.util.Timer();
+        coreTime.schedule(new TimerTask() {
             @Override
             public void run() {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                p = MouseInfo.getPointerInfo().getLocation();
-                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                cursorLocations.add(new Point((int)p.getX(), (int)p.getY(), tmp));
+                saveCursorLocation();
+                saveKeyPressed();
             }
-        },0, 1000);*/
-        
+        }, numberOfTx.length*3000);
+         
         Runnable collectCursor = new Runnable() {
             java.awt.Point p;
             String tmp;
+
             @Override
             public void run() {
                 p = MouseInfo.getPointerInfo().getLocation();
                 tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                cursorLocations.add(new Point((int)p.getX(), (int)p.getY(), tmp));
-            
+                cursorLocations.add(new Point((int) p.getX(), (int) p.getY(), tmp));
+
             }
         };
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
-        
+
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
                     @Override
                     public boolean dispatchKeyEvent(KeyEvent e) {
-                        if(e.getID() == KeyEvent.KEY_PRESSED)
+                        if (e.getID() == KeyEvent.KEY_PRESSED) {
                             keysPressed.add(new KeyClass(e.getKeyChar(), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
                         return false;
                     }
                 });
-        
 
-        
-        for (int i = 0; i < actions.length; i++) {
+        /*for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * i, actions[i]);
             timer.setRepeats(false);
             timer.start();
-        }
-        
+        }*/
+        Runnable randomTx = new Runnable() {
+            int i = 0;
+
+            @Override
+            public void run() {
+                setTableData(numberOfTx[i++]);
+            }
+        };
+        ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
+        executor2.scheduleAtFixedRate(randomTx, 0, 3000, TimeUnit.MILLISECONDS);
+
     }
-    
+
     public void setTableData() {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
@@ -137,8 +145,8 @@ public final class GUIClass extends JFrame {
             model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
         }
     }
-    
-    public void setTableData(JTable txTable, int num) {
+
+    public void setTableData(int num) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         Collections.shuffle(samples);
@@ -146,7 +154,7 @@ public final class GUIClass extends JFrame {
             model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
         }
     }
-    
+
     public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
         //txTable = new JTable(new DefaultTableModel(new Object[]{"Transaction ID", "Type", "Bank", "Bank Account"}, 0));
@@ -158,7 +166,7 @@ public final class GUIClass extends JFrame {
         }
         th.repaint();
     }
-    
+
     public boolean isTxidCorrect(int txid) {
         for (DrowsinessApp.Transaction tx : samples) {
             if (tx.getId() == txid) {
@@ -166,16 +174,16 @@ public final class GUIClass extends JFrame {
                 ownerTextField.setText(tx.getOwner());
                 amountTextField.setText("" + tx.getAmountDue());
                 transferTextField.setText("" + tx.getAmountTransfer());
-                
+
                 txDetialPanel.setVisible(true);
                 tranferLabel.setVisible(true);
-                
+
                 return true;
             }
         }
         return false;
     }
-    
+
     public void clearTransactionPage() {
         accountTextField.setText("");
         ownerTextField.setText("");
@@ -183,12 +191,12 @@ public final class GUIClass extends JFrame {
         transferTextField.setText("");
         enterTxIdTextField.setText("");
     }
-    
+
     public void clearStaffPage() {
         staffIdTextField.setText("");
         staffPwdField.setText("");
     }
-    
+
     public void initActions() {
         actions = new ActionListener[3];
         actions[0] = (ActionEvent e) -> {
@@ -200,7 +208,7 @@ public final class GUIClass extends JFrame {
                 model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
             }
         };
-        
+
         actions[1] = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -213,7 +221,7 @@ public final class GUIClass extends JFrame {
                 }
             }
         };
-        
+
         actions[2] = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -227,10 +235,9 @@ public final class GUIClass extends JFrame {
             }
         };
     }
-    
+
     public void saveKeyPressed() {
-        String fileName = cursorLocations.get(0).getTimePoint();
-        try (PrintWriter writer = new PrintWriter(new File(fileName + "_keys.csv"))) {
+        try (PrintWriter writer = new PrintWriter(new File(startTime + "_keys.csv"))) {
             StringBuilder sb = new StringBuilder();
             sb.append("Timstamp");
             sb.append(',');
@@ -243,15 +250,15 @@ public final class GUIClass extends JFrame {
                 sb.append('\n');
             }
             writer.write(sb.toString());
-            System.out.println(fileName + "_keys is writed!");
+            System.out.println(startTime + "_keys.csv is writed!");
+            keysPressed = new ArrayList<>();
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
         }
     }
-    
+
     public void saveCursorLocation() {
-        String fileName = cursorLocations.get(0).getTimePoint();
-        try (PrintWriter writer = new PrintWriter(new File(fileName + "_cursor.csv"))) {
+        try (PrintWriter writer = new PrintWriter(new File(startTime + "_cursor.csv"))) {
             StringBuilder sb = new StringBuilder();
             sb.append("Timstamp");
             sb.append(',');
@@ -268,10 +275,12 @@ public final class GUIClass extends JFrame {
                 sb.append('\n');
             }
             writer.write(sb.toString());
-            System.out.println(fileName + " is writed!");
+            System.out.println(startTime + "_cursor.csv is writed!");
+            //cursorLocations = new ArrayList<>();
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
         }
+
     }
 
     /**
@@ -709,8 +718,8 @@ public final class GUIClass extends JFrame {
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
-        saveCursorLocation();
-        saveKeyPressed();
+        //saveCursorLocation();
+        //saveKeyPressed();
         card.show(mainPanel, "transactionPanel");
         txDetialPanel.setVisible(false);
         transactionLabel.setVisible(false);
@@ -759,7 +768,7 @@ public final class GUIClass extends JFrame {
         if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
             JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
         }*/
-        
+
 
     }//GEN-LAST:event_goButton2ActionPerformed
 
@@ -801,7 +810,7 @@ public final class GUIClass extends JFrame {
         samples.add(new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
         samples.add(new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
         samples.add(new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 55; i++) {
             String type, bank;
             if (i % 5 == 0) {
                 bank = "SCB";
@@ -826,7 +835,7 @@ public final class GUIClass extends JFrame {
                 new GUIClass().setVisible(true);
             }
         });
-        
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
