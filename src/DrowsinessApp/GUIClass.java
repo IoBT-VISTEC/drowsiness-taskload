@@ -23,6 +23,9 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PSurface;
+import java.util.Date.*;
+import java.util.TimerTask;
+import java.sql.Timestamp;
 
 /**
  *
@@ -41,31 +44,40 @@ public final class GUIClass extends JFrame {
     public MainCore mc;
     private PSurface ms;
     private SmoothCanvas msc;
+    private List<Point> cursorLocations;
 
     public GUIClass() {
         initComponents();
+        txTable.setDefaultEditor(Object.class, null);
         //mainCore.init();
         //add(mainCore);
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
         initActions();
-        
+        cursorLocations = new ArrayList<>();
+
         mc = new MainCore();
         ms = mc.getInitSurface();
-        ms.setSize(570,480);
+        ms.setSize(570, 480);
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
-        
-        /*mainPanel.addMouseMotionListener(new MouseMotionAdapter() {
+
+        companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            Timestamp tmp;
+
             @Override
-            public void mouseMoved(MouseEvent e){
-                System.out.println(e.getX() + ", " + e.getY());
+            public void mouseMoved(MouseEvent e) {
+                tmp = new Timestamp(System.currentTimeMillis());
+                System.out.println(tmp.getTime());
+                if (tmp.getTime() % 10 == 0) {
+                    cursorLocations.add(new Point(e.getX(), e.getY(), tmp));
+                    System.out.println(cursorLocations.get(cursorLocations.size() - 1) + " is added");
+                }
             }
-        });*/
-        
+        });
         for (int i = 0; i < actions.length; i++) {
-            timer = new Timer(3000 * (i + 1), actions[i]);
+            timer = new Timer(3000 * i, actions[i]);
             timer.setRepeats(false);
             timer.start();
         }
@@ -108,6 +120,9 @@ public final class GUIClass extends JFrame {
                 ownerTextField.setText(tx.getOwner());
                 amountTextField.setText("" + tx.getAmountDue());
                 transferTextField.setText("" + tx.getAmountTransfer());
+
+                txDetialPanel.setVisible(true);
+                tranferLabel.setVisible(true);
 
                 return true;
             }
@@ -226,7 +241,16 @@ public final class GUIClass extends JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        txTable.setEnabled(false);
+        txTable.setToolTipText("");
+        txTable.setAlignmentX(1.0F);
+        txTable.setAlignmentY(1.0F);
+        txTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        txTable.setFocusable(false);
+        txTable.setGridColor(new java.awt.Color(204, 204, 204));
+        txTable.setOpaque(false);
+        txTable.setRowHeight(20);
+        txTable.setRowSelectionAllowed(true);
+        txTable.setShowGrid(true);
         jScrollPane1.setViewportView(txTable);
 
         goButton.setBackground(new java.awt.Color(153, 204, 255));
@@ -293,8 +317,11 @@ public final class GUIClass extends JFrame {
 
         mainPanel.add(companyPanel, "companyPanel");
 
+        transactionPanel.setOpaque(false);
+
         enterTxIdLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         enterTxIdLabel.setText("Please Enter Transaction ID");
+        enterTxIdLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         enterTxIdTextField.setBackground(new java.awt.Color(222, 203, 229));
         enterTxIdTextField.addActionListener(new java.awt.event.ActionListener() {
@@ -446,29 +473,32 @@ public final class GUIClass extends JFrame {
                         .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(goButton2))
                 .addGap(18, 18, 18)
-                .addComponent(txDetialPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, transactionPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(107, 107, 107))
+                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(transactionPanelLayout.createSequentialGroup()
+                        .addComponent(txDetialPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(transactionPanelLayout.createSequentialGroup()
+                        .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(107, 107, 107))))
         );
         transactionPanelLayout.setVerticalGroup(
             transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(transactionPanelLayout.createSequentialGroup()
-                .addGap(35, 35, 35)
-                .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(txDetialPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(transactionPanelLayout.createSequentialGroup()
-                        .addComponent(enterTxIdLabel)
+                        .addGap(35, 35, 35)
+                        .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(txDetialPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, transactionPanelLayout.createSequentialGroup()
+                        .addGap(162, 162, 162)
+                        .addComponent(enterTxIdLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(goButton2)
-                        .addGap(195, 195, 195)))
-                .addContainerGap(24, Short.MAX_VALUE))
+                        .addGap(179, 179, 179)))
+                .addGap(35, 35, 35))
         );
 
         mainPanel.add(transactionPanel, "transactionPanel");
@@ -568,8 +598,12 @@ public final class GUIClass extends JFrame {
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
         // TODO add your handling code here:
-        clearTransactionPage();
-        card.show(mainPanel, "staffPanel");
+        if (txDetialPanel.isVisible()) {
+            clearStaffPage();
+            card.show(mainPanel, "staffPanel");
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_confirmButtonActionPerformed
 
     private void ownerTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ownerTextFieldActionPerformed
@@ -583,12 +617,16 @@ public final class GUIClass extends JFrame {
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
+        cursorLocations.forEach((p) -> {
+            System.out.println(p);
+        });
         card.show(mainPanel, "transactionPanel");
+        txDetialPanel.setVisible(false);
+        transactionLabel.setVisible(false);
     }//GEN-LAST:event_goButtonActionPerformed
 
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
         // TODO add your handling code here:
-        clearTransactionPage();
         card.show(mainPanel, "staffPanel");
     }//GEN-LAST:event_reportButtonActionPerformed
 
@@ -597,7 +635,9 @@ public final class GUIClass extends JFrame {
         if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
+            setTableData();
             card.show(mainPanel, "companyPanel");
+            enterTxIdTextField.setText("");
             clearStaffPage();
         } else {
             JOptionPane.showMessageDialog(rootPane, "Username or password is not correct!", "Error", ERROR_MESSAGE);
@@ -613,13 +653,17 @@ public final class GUIClass extends JFrame {
 
     private void goButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton2ActionPerformed
         // TODO add your handling code here:
-        try {
-            int number = Integer.parseInt(enterTxIdTextField.getText());
-            if (!isTxidCorrect(number)) {
-                JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
+        if (enterTxIdTextField.getText().isBlank()) {
+            JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
+        } else {
+            try {
+                int number = Integer.parseInt(enterTxIdTextField.getText());
+                if (!isTxidCorrect(number)) {
+                    JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found!", "Error", ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ne) {
+                JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Error", ERROR_MESSAGE);
             }
-        } catch (NumberFormatException ne) {
-            JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Erro", ERROR_MESSAGE);
         }/*
         if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
             JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
@@ -645,17 +689,21 @@ public final class GUIClass extends JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
-        
+
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
         samples = new ArrayList<>();
@@ -687,7 +735,7 @@ public final class GUIClass extends JFrame {
                 new GUIClass().setVisible(true);
             }
         });
-        
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
