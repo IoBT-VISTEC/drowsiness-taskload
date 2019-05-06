@@ -4,8 +4,6 @@
  * and open the template in the editor.
  */
 package DrowsinessApp;
-
-import java.sql.Timestamp;
 /**
  *
  * @author guygu
@@ -13,9 +11,9 @@ import java.sql.Timestamp;
 class Point {
     private int x;
     private int y;
-    private Timestamp timePoint;
+    private String timePoint;
     
-    public Point(int x, int y, Timestamp time){
+    public Point(int x, int y, String time){
         this.x = x;
         this.y = y;
         this.timePoint = time;
@@ -42,21 +40,12 @@ class Point {
         this.y = y;
     }
 
-    public Timestamp getTimePoint() {
+    public String getTimePoint() {
         return timePoint;
     }
 
-    public void setTimePoint(Timestamp timePoint) {
+    public void setTimePoint(String timePoint) {
         this.timePoint = timePoint;
     }
     
-    public String fileName(){
-        System.out.println(timePoint);
-        String tmp = timePoint.toString().replaceAll("\\s+", "");
-        System.out.println(tmp);
-        return tmp.substring(0, 10) + 
-                "__" + tmp.substring(10, 12) +
-                "." + tmp.substring(13, 15) +
-                "." + tmp.substring(16);
-    }
 }

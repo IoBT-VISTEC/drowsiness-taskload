@@ -6,8 +6,11 @@
 package DrowsinessApp;
 
 import java.awt.CardLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.io.File;
@@ -29,6 +32,8 @@ import processing.core.PSurface;
 import java.util.Date.*;
 import java.util.TimerTask;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  *
@@ -48,7 +53,8 @@ public final class GUIClass extends JFrame {
     private PSurface ms;
     private SmoothCanvas msc;
     private List<Point> cursorLocations;
-
+    private List<KeyClass> keysPressed;
+    
     public GUIClass() {
         initComponents();
         txTable.setDefaultEditor(Object.class, null);
@@ -59,32 +65,45 @@ public final class GUIClass extends JFrame {
         setTableData();
         initActions();
         cursorLocations = new ArrayList<>();
-
+        keysPressed = new ArrayList<>();
+        
         mc = new MainCore();
         ms = mc.getInitSurface();
         ms.setSize(570, 480);
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
-
+        
         companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
-            Timestamp tmp;
-
+            String tmp;
+            
             @Override
             public void mouseMoved(MouseEvent e) {
-                tmp = new Timestamp(System.currentTimeMillis());
-                if (tmp.getTime() % 10 == 0) {
+                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                if (Integer.parseInt(tmp.substring(tmp.length() - 3)) % 10 == 0) {
                     cursorLocations.add(new Point(e.getX(), e.getY(), tmp));
                 }
             }
         });
+        
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(new KeyEventDispatcher() {
+                    @Override
+                    public boolean dispatchKeyEvent(KeyEvent e) {
+                        if(e.getID() == KeyEvent.KEY_PRESSED)
+                            keysPressed.add(new KeyClass(e.getKeyChar(), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        return false;
+                    }
+                });
+        
 
+        
         for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * i, actions[i]);
             timer.setRepeats(false);
             timer.start();
         }
     }
-
+    
     public void setTableData() {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
@@ -93,7 +112,7 @@ public final class GUIClass extends JFrame {
             model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
         }
     }
-
+    
     public void setTableData(JTable txTable, int num) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
@@ -102,7 +121,7 @@ public final class GUIClass extends JFrame {
             model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
         }
     }
-
+    
     public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
         //txTable = new JTable(new DefaultTableModel(new Object[]{"Transaction ID", "Type", "Bank", "Bank Account"}, 0));
@@ -114,7 +133,7 @@ public final class GUIClass extends JFrame {
         }
         th.repaint();
     }
-
+    
     public boolean isTxidCorrect(int txid) {
         for (DrowsinessApp.Transaction tx : samples) {
             if (tx.getId() == txid) {
@@ -122,16 +141,16 @@ public final class GUIClass extends JFrame {
                 ownerTextField.setText(tx.getOwner());
                 amountTextField.setText("" + tx.getAmountDue());
                 transferTextField.setText("" + tx.getAmountTransfer());
-
+                
                 txDetialPanel.setVisible(true);
                 tranferLabel.setVisible(true);
-
+                
                 return true;
             }
         }
         return false;
     }
-
+    
     public void clearTransactionPage() {
         accountTextField.setText("");
         ownerTextField.setText("");
@@ -139,12 +158,12 @@ public final class GUIClass extends JFrame {
         transferTextField.setText("");
         enterTxIdTextField.setText("");
     }
-
+    
     public void clearStaffPage() {
         staffIdTextField.setText("");
         staffPwdField.setText("");
     }
-
+    
     public void initActions() {
         actions = new ActionListener[3];
         actions[0] = (ActionEvent e) -> {
@@ -156,7 +175,7 @@ public final class GUIClass extends JFrame {
                 model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
             }
         };
-
+        
         actions[1] = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -169,7 +188,7 @@ public final class GUIClass extends JFrame {
                 }
             }
         };
-
+        
         actions[2] = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -184,13 +203,30 @@ public final class GUIClass extends JFrame {
         };
     }
     
-    public void saveKeyPressed(){
-        System.out.println("Save");
+    public void saveKeyPressed() {
+        String fileName = cursorLocations.get(0).getTimePoint();
+        try (PrintWriter writer = new PrintWriter(new File(fileName + "_keys.csv"))) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Timstamp");
+            sb.append(',');
+            sb.append("Key");
+            sb.append('\n');
+            for (KeyClass k : keysPressed) {
+                sb.append(k.getTimePoint());
+                sb.append(',');
+                sb.append(k.getKey());
+                sb.append('\n');
+            }
+            writer.write(sb.toString());
+            System.out.println(fileName + "_keys is writed!");
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
     }
     
-    public void saveCursorLocation(){
-        String fileName = cursorLocations.get(0).fileName();
-        try(PrintWriter writer = new PrintWriter(new File(fileName+"_cursor.csv"))){
+    public void saveCursorLocation() {
+        String fileName = cursorLocations.get(0).getTimePoint();
+        try (PrintWriter writer = new PrintWriter(new File(fileName + "_cursor.csv"))) {
             StringBuilder sb = new StringBuilder();
             sb.append("Timstamp");
             sb.append(',');
@@ -198,8 +234,8 @@ public final class GUIClass extends JFrame {
             sb.append(',');
             sb.append("Y");
             sb.append('\n');
-            for(Point p: cursorLocations){
-                sb.append(p.getTimePoint().toLocalDateTime());
+            for (Point p : cursorLocations) {
+                sb.append(p.getTimePoint());
                 sb.append(',');
                 sb.append(p.getX());
                 sb.append(',');
@@ -208,7 +244,7 @@ public final class GUIClass extends JFrame {
             }
             writer.write(sb.toString());
             System.out.println(fileName + " is writed!");
-        }catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -649,6 +685,7 @@ public final class GUIClass extends JFrame {
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
         // TODO add your handling code here:
         saveCursorLocation();
+        saveKeyPressed();
         card.show(mainPanel, "transactionPanel");
         txDetialPanel.setVisible(false);
         transactionLabel.setVisible(false);
@@ -697,7 +734,7 @@ public final class GUIClass extends JFrame {
         if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
             JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
         }*/
-
+        
 
     }//GEN-LAST:event_goButton2ActionPerformed
 
@@ -764,7 +801,7 @@ public final class GUIClass extends JFrame {
                 new GUIClass().setVisible(true);
             }
         });
-
+        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
