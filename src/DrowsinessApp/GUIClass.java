@@ -8,6 +8,8 @@ package DrowsinessApp;
 import java.awt.CardLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +21,6 @@ import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
-import processing.awt.PSurfaceAWT;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PSurface;
 
@@ -55,6 +56,13 @@ public final class GUIClass extends JFrame {
         ms.setSize(570,480);
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
+        
+        /*mainPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e){
+                System.out.println(e.getX() + ", " + e.getY());
+            }
+        });*/
         
         for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * (i + 1), actions[i]);
