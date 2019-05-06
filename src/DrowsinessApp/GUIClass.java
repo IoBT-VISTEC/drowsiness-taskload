@@ -8,11 +8,10 @@ package DrowsinessApp;
 import java.awt.CardLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.MouseInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -29,11 +28,12 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PSurface;
-import java.util.Date.*;
 import java.util.TimerTask;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -58,8 +58,6 @@ public final class GUIClass extends JFrame {
     public GUIClass() {
         initComponents();
         txTable.setDefaultEditor(Object.class, null);
-        //mainCore.init();
-        //add(mainCore);
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
@@ -73,7 +71,7 @@ public final class GUIClass extends JFrame {
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
         
-        companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
+        /*companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
             String tmp;
             
             @Override
@@ -83,7 +81,33 @@ public final class GUIClass extends JFrame {
                     cursorLocations.add(new Point(e.getX(), e.getY(), tmp));
                 }
             }
-        });
+        });*/
+        /*java.util.Timer timer2 = new java.util.Timer();
+        timer2.schedule(new TimerTask() {
+            java.awt.Point p;
+            String tmp;
+            @Override
+            public void run() {
+                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                p = MouseInfo.getPointerInfo().getLocation();
+                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                cursorLocations.add(new Point((int)p.getX(), (int)p.getY(), tmp));
+            }
+        },0, 1000);*/
+        
+        Runnable collectCursor = new Runnable() {
+            java.awt.Point p;
+            String tmp;
+            @Override
+            public void run() {
+                p = MouseInfo.getPointerInfo().getLocation();
+                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                cursorLocations.add(new Point((int)p.getX(), (int)p.getY(), tmp));
+            
+            }
+        };
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
         
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
@@ -102,6 +126,7 @@ public final class GUIClass extends JFrame {
             timer.setRepeats(false);
             timer.start();
         }
+        
     }
     
     public void setTableData() {
