@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,15 +22,11 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
-import processing.awt.PSurfaceAWT.SmoothCanvas;
-import processing.core.PSurface;
 import java.text.SimpleDateFormat;
-import java.util.AbstractList;
 import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -51,13 +46,14 @@ public final class GUIClass extends JFrame {
     private static StaffAccount staff;
     private static ActionListener[] actions;
     private static Timer timer;
-    public MainCore mc;
-    private PSurface ms;
-    private SmoothCanvas msc;
+    //public MainCore mc;
+    //private PSurface ms;
+    //private SmoothCanvas msc;
     private List<Point> cursorLocations;
     private List<KeyClass> keysPressed;
     private String startTime;
-    private int[] numberOfTx = {15, 8, 3};
+    private static final int[] numberOfTx = {15, 13, 11, 9, 7, 5, 3, 2};
+    public static int count = 0;
 
     public GUIClass() {
         initComponents();
@@ -69,11 +65,12 @@ public final class GUIClass extends JFrame {
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
         startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+        /*
         mc = new MainCore();
         ms = mc.getInitSurface();
         ms.setSize(570, 480);
         msc = (SmoothCanvas) ms.getNative();
-        mainPanel.add(msc);
+        mainPanel.add(msc);*/
 
         java.util.Timer coreTime = new java.util.Timer();
         coreTime.schedule(new TimerTask() {
@@ -120,17 +117,6 @@ public final class GUIClass extends JFrame {
             timer.setRepeats(false);
             timer.start();
         }
-        /*Runnable randomTx = new Runnable() {
-            int i = 0;
-
-            @Override
-            public void run() {
-                setTableData(numberOfTx[i++]);
-            }
-        };
-        ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
-        executor2.scheduleAtFixedRate(randomTx, 0, 3000, TimeUnit.MILLISECONDS);*/
-
     }
 
     public void setTableData() {
@@ -153,7 +139,6 @@ public final class GUIClass extends JFrame {
 
     public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
-        //txTable = new JTable(new DefaultTableModel(new Object[]{"Transaction ID", "Type", "Bank", "Bank Account"}, 0));
 
         JTableHeader th = txTable.getTableHeader();
         TableColumnModel tcm = th.getColumnModel();
@@ -194,58 +179,38 @@ public final class GUIClass extends JFrame {
     }
 
     public void initActions() {
-        actions = new ActionListener[3];
-        actions[0] = (ActionEvent e) -> {
-            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            DefaultTableModel model = (DefaultTableModel) txTable.getModel();
-            model.setRowCount(0);
-            Collections.shuffle(samples);
-            for (int i = 0; i < 18; i++) {
-                model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
-            }
-        };
-
-        actions[1] = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                DefaultTableModel model = (DefaultTableModel) txTable.getModel();
-                model.setRowCount(0);
-                Collections.shuffle(samples);
-                for (int i = 0; i < 10; i++) {
-                    model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+        actions = new ActionListener[numberOfTx.length];
+        for (int i = 0; i < actions.length; i++) {
+            actions[i] = new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+                    model.setRowCount(0);
+                    Collections.shuffle(samples);
+                    for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
+                        model.insertRow(j, new Object[]{samples.get(j).getId(), samples.get(j).getType(), samples.get(j).getBank(), samples.get(j).getAccount()});
+                    }
+                    GUIClass.count++;
                 }
-            }
-        };
-
-        actions[2] = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                DefaultTableModel model = (DefaultTableModel) txTable.getModel();
-                model.setRowCount(0);
-                Collections.shuffle(samples);
-                for (int i = 0; i < 3; i++) {
-                    model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
-                }
-            }
-        };
+            };
+        }
     }
 
     public void saveKeyPressed() {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
-            File f = new File("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_key.csv");
-            if(!f.exists() || f.isDirectory()){
+            File f = new File(System.getProperty("user.dir") + "/" + startTime + "_key.csv");
+            if (!f.exists() || f.isDirectory()) {
                 pw = new PrintWriter(new FileWriter(startTime + "_key.csv"));
                 sb.append("Timestamp");
                 sb.append(',');
                 sb.append("Key");
                 sb.append('\n');
                 System.out.println(startTime + "_key.csv is created!");
-            }else{
-                pw = new PrintWriter(new FileWriter("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_key.csv",true));
+            } else {
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + startTime + "_key.csv", true));
+                //pw = new PrintWriter(new FileWriter(,true));
             }
             for (KeyClass k : keysPressed) {
                 sb.append(k.getTimePoint());
@@ -265,8 +230,8 @@ public final class GUIClass extends JFrame {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
-            File f = new File("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_cursor.csv");
-            if(!f.exists() || f.isDirectory()){
+            File f = new File(System.getProperty("user.dir") + "/" + startTime + "_cursor.csv");
+            if (!f.exists() || f.isDirectory()) {
                 pw = new PrintWriter(new FileWriter(startTime + "_cursor.csv"));
                 sb.append("Timestamp");
                 sb.append(',');
@@ -275,8 +240,8 @@ public final class GUIClass extends JFrame {
                 sb.append("Y");
                 sb.append('\n');
                 System.out.println(startTime + "_cursor.csv is created!");
-            }else{
-                pw = new PrintWriter(new FileWriter("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_cursor.csv",true));
+            } else {
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + startTime + "_cursor.csv", true));
             }
             for (Point p : cursorLocations) {
                 sb.append(p.getTimePoint());
