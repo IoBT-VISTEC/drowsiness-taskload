@@ -14,6 +14,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +31,7 @@ import javax.swing.table.TableColumnModel;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PSurface;
 import java.text.SimpleDateFormat;
+import java.util.AbstractList;
 import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -72,27 +75,20 @@ public final class GUIClass extends JFrame {
         msc = (SmoothCanvas) ms.getNative();
         mainPanel.add(msc);
 
-        /*companyPanel.addMouseMotionListener(new MouseMotionAdapter() {
-            String tmp;
-            
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                if (Integer.parseInt(tmp.substring(tmp.length() - 3)) % 10 == 0) {
-                    cursorLocations.add(new Point(e.getX(), e.getY(), tmp));
-                }
-            }
-        });*/
-
         java.util.Timer coreTime = new java.util.Timer();
         coreTime.schedule(new TimerTask() {
             @Override
             public void run() {
-                saveCursorLocation();
                 saveKeyPressed();
+                saveCursorLocation();
+                cursorLocations = new ArrayList<>();
+                keysPressed = new ArrayList<>();
+                for (KeyClass k : keysPressed) {
+                    System.out.println(k.getKey());
+                }
             }
-        }, numberOfTx.length*3000);
-         
+        }, 3000, 3000);
+
         Runnable collectCursor = new Runnable() {
             java.awt.Point p;
             String tmp;
@@ -119,12 +115,12 @@ public final class GUIClass extends JFrame {
                     }
                 });
 
-        /*for (int i = 0; i < actions.length; i++) {
+        for (int i = 0; i < actions.length; i++) {
             timer = new Timer(3000 * i, actions[i]);
             timer.setRepeats(false);
             timer.start();
-        }*/
-        Runnable randomTx = new Runnable() {
+        }
+        /*Runnable randomTx = new Runnable() {
             int i = 0;
 
             @Override
@@ -133,7 +129,7 @@ public final class GUIClass extends JFrame {
             }
         };
         ScheduledExecutorService executor2 = Executors.newScheduledThreadPool(1);
-        executor2.scheduleAtFixedRate(randomTx, 0, 3000, TimeUnit.MILLISECONDS);
+        executor2.scheduleAtFixedRate(randomTx, 0, 3000, TimeUnit.MILLISECONDS);*/
 
     }
 
@@ -237,35 +233,51 @@ public final class GUIClass extends JFrame {
     }
 
     public void saveKeyPressed() {
-        try (PrintWriter writer = new PrintWriter(new File(startTime + "_keys.csv"))) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Timstamp");
-            sb.append(',');
-            sb.append("Key");
-            sb.append('\n');
+        PrintWriter pw;
+        StringBuilder sb = new StringBuilder();
+        try {
+            File f = new File("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_key.csv");
+            if(!f.exists() || f.isDirectory()){
+                pw = new PrintWriter(new FileWriter(startTime + "_key.csv"));
+                sb.append("Timestamp");
+                sb.append(',');
+                sb.append("Key");
+                sb.append('\n');
+                System.out.println(startTime + "_key.csv is created!");
+            }else{
+                pw = new PrintWriter(new FileWriter("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_key.csv",true));
+            }
             for (KeyClass k : keysPressed) {
                 sb.append(k.getTimePoint());
                 sb.append(',');
                 sb.append(k.getKey());
                 sb.append('\n');
             }
-            writer.write(sb.toString());
-            System.out.println(startTime + "_keys.csv is writed!");
-            keysPressed = new ArrayList<>();
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+            pw.write(sb.toString());
+            System.out.println(startTime + "_key.csv is writed!");
+            pw.close();
+        } catch (IOException e) {
+            System.out.println(e);
         }
     }
 
     public void saveCursorLocation() {
-        try (PrintWriter writer = new PrintWriter(new File(startTime + "_cursor.csv"))) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Timstamp");
-            sb.append(',');
-            sb.append("X");
-            sb.append(',');
-            sb.append("Y");
-            sb.append('\n');
+        PrintWriter pw;
+        StringBuilder sb = new StringBuilder();
+        try {
+            File f = new File("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_cursor.csv");
+            if(!f.exists() || f.isDirectory()){
+                pw = new PrintWriter(new FileWriter(startTime + "_cursor.csv"));
+                sb.append("Timestamp");
+                sb.append(',');
+                sb.append("X");
+                sb.append(',');
+                sb.append("Y");
+                sb.append('\n');
+                System.out.println(startTime + "_cursor.csv is created!");
+            }else{
+                pw = new PrintWriter(new FileWriter("c:/Users/guygu/OneDrive/Documents/NetBeansProjects/DrowsinessApp/" + startTime + "_cursor.csv",true));
+            }
             for (Point p : cursorLocations) {
                 sb.append(p.getTimePoint());
                 sb.append(',');
@@ -274,13 +286,12 @@ public final class GUIClass extends JFrame {
                 sb.append(p.getY());
                 sb.append('\n');
             }
-            writer.write(sb.toString());
+            pw.write(sb.toString());
             System.out.println(startTime + "_cursor.csv is writed!");
-            //cursorLocations = new ArrayList<>();
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+            pw.close();
+        } catch (IOException e) {
+            System.out.println(e);
         }
-
     }
 
     /**
