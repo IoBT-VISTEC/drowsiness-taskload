@@ -18,6 +18,7 @@ public class StaffAccount {
     public StaffAccount(){
         accounts = new HashMap<>();
         accounts.put("admin", "password".toCharArray());
+        accounts.put("brain", "12345".toCharArray());
     }
     
     public boolean addAccount(String id, String password){

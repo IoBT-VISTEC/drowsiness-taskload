@@ -84,7 +84,7 @@ public final class GUIClass extends JFrame {
                     System.out.println(k.getKey());
                 }
             }
-        }, 3000, 3000);
+        }, 900000, 900000);
 
         Runnable collectCursor = new Runnable() {
             java.awt.Point p;
@@ -113,7 +113,7 @@ public final class GUIClass extends JFrame {
                 });
 
         for (int i = 0; i < actions.length; i++) {
-            timer = new Timer(3000 * i, actions[i]);
+            timer = new Timer(900000 * i, actions[i]);
             timer.setRepeats(false);
             timer.start();
         }
@@ -711,7 +711,7 @@ public final class GUIClass extends JFrame {
         if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
-            setTableData();
+            //setTableData();
             card.show(mainPanel, "companyPanel");
             enterTxIdTextField.setText("");
             clearStaffPage();
