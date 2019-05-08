@@ -139,7 +139,7 @@ public final class GUIClass extends JFrame {
 
     public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
-
+        txTable.getTableHeader().setResizingAllowed(false);
         JTableHeader th = txTable.getTableHeader();
         TableColumnModel tcm = th.getColumnModel();
         for (int i = 0; i < columnNames.length; i++) {
@@ -156,8 +156,8 @@ public final class GUIClass extends JFrame {
                 amountTextField.setText("" + tx.getAmountDue());
                 transferTextField.setText("" + tx.getAmountTransfer());
 
+                transactionLabel.setVisible(true);
                 txDetialPanel.setVisible(true);
-                tranferLabel.setVisible(true);
 
                 return true;
             }
@@ -326,7 +326,6 @@ public final class GUIClass extends JFrame {
         txTable.setGridColor(new java.awt.Color(204, 204, 204));
         txTable.setOpaque(false);
         txTable.setRowHeight(20);
-        txTable.setRowSelectionAllowed(true);
         txTable.setShowGrid(true);
         jScrollPane1.setViewportView(txTable);
 
@@ -554,28 +553,27 @@ public final class GUIClass extends JFrame {
                     .addGroup(transactionPanelLayout.createSequentialGroup()
                         .addComponent(txDetialPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
-                    .addGroup(transactionPanelLayout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, transactionPanelLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(107, 107, 107))))
+                        .addGap(112, 112, 112))))
         );
         transactionPanelLayout.setVerticalGroup(
             transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(transactionPanelLayout.createSequentialGroup()
-                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(transactionPanelLayout.createSequentialGroup()
-                        .addGap(35, 35, 35)
-                        .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txDetialPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, transactionPanelLayout.createSequentialGroup()
-                        .addGap(162, 162, 162)
-                        .addComponent(enterTxIdLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(goButton2)
-                        .addGap(179, 179, 179)))
-                .addGap(35, 35, 35))
+                .addGap(162, 162, 162)
+                .addComponent(enterTxIdLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(goButton2)
+                .addGap(214, 214, 214))
+            .addGroup(transactionPanelLayout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(txDetialPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(24, 24, 24))
         );
 
         mainPanel.add(transactionPanel, "transactionPanel");
