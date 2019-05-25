@@ -16,45 +16,53 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-import javax.swing.JFrame;
+import java.util.Random;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
+ *
  * @author guygu
  */
-public final class GUIClass extends JFrame {
+public class GUIClass extends javax.swing.JFrame {
 
-    /**
-     * Creates new form JFrame
-     */
     private static CardLayout card;
     private static List<Transaction> samples;
     private static StaffAccount staff;
     private static ActionListener[] actions;
     private static Timer timer;
-    //public MainCore mc;
-    //private PSurface ms;
-    //private SmoothCanvas msc;
     private List<Point> cursorLocations;
     private List<KeyClass> keysPressed;
-    private String startTime;
+    private List<Transaction> tmpData;
+    private String fileName;
     private static final int[] numberOfTx = {15, 13, 11, 9, 7, 5, 3, 2};
     public static int count = 0;
+    private boolean isTxShown = false;
+    private int selectedId;
+    private int dataCheckingStage;
+    private int corrected;
+    private java.util.Timer coreTime;
+    private Runnable collectCursor;
+    ScheduledExecutorService executor;
+    DecimalFormat df2 = new DecimalFormat("#,###.##");
 
+    /**
+     * Creates new form GUIClass
+     */
     public GUIClass() {
         initComponents();
         txTable.setDefaultEditor(Object.class, null);
@@ -64,43 +72,10 @@ public final class GUIClass extends JFrame {
         initActions();
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
-        startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-        /*
-        mc = new MainCore();
-        ms = mc.getInitSurface();
-        ms.setSize(570, 480);
-        msc = (SmoothCanvas) ms.getNative();
-        mainPanel.add(msc);*/
+        dataCheckingStage = 0;
+        corrected = 0;
 
-        java.util.Timer coreTime = new java.util.Timer();
-        coreTime.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                saveKeyPressed();
-                saveCursorLocation();
-                cursorLocations = new ArrayList<>();
-                keysPressed = new ArrayList<>();
-                for (KeyClass k : keysPressed) {
-                    System.out.println(k.getKey());
-                }
-            }
-        }, 900000, 900000);
-
-        Runnable collectCursor = new Runnable() {
-            java.awt.Point p;
-            String tmp;
-
-            @Override
-            public void run() {
-                p = MouseInfo.getPointerInfo().getLocation();
-                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                cursorLocations.add(new Point((int) p.getX(), (int) p.getY(), tmp));
-
-            }
-        };
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
-
+        //executor = Executors.newScheduledThreadPool(1);
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
                     @Override
@@ -112,11 +87,45 @@ public final class GUIClass extends JFrame {
                     }
                 });
 
-        for (int i = 0; i < actions.length; i++) {
-            timer = new Timer(900000 * i, actions[i]);
-            timer.setRepeats(false);
-            timer.start();
-        }
+        //write csv every 5 secs
+        /*java.util.Timer coreTime = new java.util.Timer();
+        coreTime.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                saveKeyPressed();
+                saveCursorLocation();
+                cursorLocations = new ArrayList<>();
+                keysPressed = new ArrayList<>();
+            }
+        }, 5000, 5000);
+         */
+        //collect cursor location
+        collectCursor = new Runnable() {
+            java.awt.Point p;
+            String tmp;
+
+            @Override
+            public void run() {
+                p = MouseInfo.getPointerInfo().getLocation();
+                tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                cursorLocations.add(new Point((int) p.getX(), (int) p.getY(), tmp));
+
+            }
+        };
+        /*ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
+
+        //collect keypressed
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(new KeyEventDispatcher() {
+                    @Override
+                    public boolean dispatchKeyEvent(KeyEvent e) {
+                        if (e.getID() == KeyEvent.KEY_PRESSED) {
+                            keysPressed.add(new KeyClass(e.getKeyChar(), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        return false;
+                    }
+                });*/
     }
 
     public void setTableData() {
@@ -131,9 +140,8 @@ public final class GUIClass extends JFrame {
     public void setTableData(int num) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
-        Collections.shuffle(samples);
         for (int i = 0; i < num; i++) {
-            model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
+            model.insertRow(i, new Object[]{tmpData.get(i).getId(), tmpData.get(i).getType(), tmpData.get(i).getBank(), tmpData.get(i).getAccount()});
         }
     }
 
@@ -149,19 +157,24 @@ public final class GUIClass extends JFrame {
     }
 
     public boolean isTxidCorrect(int txid) {
-        for (DrowsinessApp.Transaction tx : samples) {
-            if (tx.getId() == txid) {
-                accountTextField.setText(tx.getAccount());
-                ownerTextField.setText(tx.getOwner());
-                amountTextField.setText("" + tx.getAmountDue());
-                transferTextField.setText("" + tx.getAmountTransfer());
-
-                transactionLabel.setVisible(true);
-                txDetialPanel.setVisible(true);
+        for (int i = 0; i < tmpData.size(); i++) {
+            if (tmpData.get(i).getId() == txid) {
+                Transaction tmp = tmpData.get(i);
+                accountTextField.setText(tmp.getAccount());
+                ownerTextField.setText(tmp.getOwner());
+                //amountTextField.setText("" + tmp.getAmountDue());
+                //transferTextField.setText("" + tmp.getAmountTransfer());
+                
+                amountTextField.setText(df2.format(tmp.getAmountDue()));
+                transferTextField.setText(df2.format(tmp.getAmountTransfer()));
+                
+                selectedId = tmp.getId();
+                isTxShown = true;
 
                 return true;
             }
         }
+
         return false;
     }
 
@@ -170,7 +183,7 @@ public final class GUIClass extends JFrame {
         ownerTextField.setText("");
         amountTextField.setText("");
         transferTextField.setText("");
-        enterTxIdTextField.setText("");
+        enterTxidTextField.setText("");
     }
 
     public void clearStaffPage() {
@@ -186,8 +199,10 @@ public final class GUIClass extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     DefaultTableModel model = (DefaultTableModel) txTable.getModel();
                     model.setRowCount(0);
+                    tmpData = new ArrayList<>();
                     Collections.shuffle(samples);
                     for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
+                        tmpData.add(samples.get(j));
                         model.insertRow(j, new Object[]{samples.get(j).getId(), samples.get(j).getType(), samples.get(j).getBank(), samples.get(j).getAccount()});
                     }
                     GUIClass.count++;
@@ -200,16 +215,15 @@ public final class GUIClass extends JFrame {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
-            File f = new File(System.getProperty("user.dir") + "/" + startTime + "_key.csv");
+            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_key.csv");
             if (!f.exists() || f.isDirectory()) {
-                pw = new PrintWriter(new FileWriter(startTime + "_key.csv"));
+                pw = new PrintWriter(new FileWriter(fileName + "_key.csv"));
                 sb.append("Timestamp");
                 sb.append(',');
                 sb.append("Key");
                 sb.append('\n');
-                System.out.println(startTime + "_key.csv is created!");
             } else {
-                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + startTime + "_key.csv", true));
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_key.csv", true));
                 //pw = new PrintWriter(new FileWriter(,true));
             }
             for (KeyClass k : keysPressed) {
@@ -219,7 +233,6 @@ public final class GUIClass extends JFrame {
                 sb.append('\n');
             }
             pw.write(sb.toString());
-            System.out.println(startTime + "_key.csv is writed!");
             pw.close();
         } catch (IOException e) {
             System.out.println(e);
@@ -230,18 +243,17 @@ public final class GUIClass extends JFrame {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
-            File f = new File(System.getProperty("user.dir") + "/" + startTime + "_cursor.csv");
+            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_cursor.csv");
             if (!f.exists() || f.isDirectory()) {
-                pw = new PrintWriter(new FileWriter(startTime + "_cursor.csv"));
+                pw = new PrintWriter(new FileWriter(fileName + "_cursor.csv"));
                 sb.append("Timestamp");
                 sb.append(',');
                 sb.append("X");
                 sb.append(',');
                 sb.append("Y");
                 sb.append('\n');
-                System.out.println(startTime + "_cursor.csv is created!");
             } else {
-                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + startTime + "_cursor.csv", true));
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_cursor.csv", true));
             }
             for (Point p : cursorLocations) {
                 sb.append(p.getTimePoint());
@@ -252,7 +264,6 @@ public final class GUIClass extends JFrame {
                 sb.append('\n');
             }
             pw.write(sb.toString());
-            System.out.println(startTime + "_cursor.csv is writed!");
             pw.close();
         } catch (IOException e) {
             System.out.println(e);
@@ -268,45 +279,65 @@ public final class GUIClass extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        mainPanel = new javax.swing.JPanel();
         companyPanel = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txTable = new javax.swing.JTable();
-        goButton = new javax.swing.JButton();
         refreshButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        transactionPanel = new javax.swing.JPanel();
+        startButton = new javax.swing.JButton();
+        staffNoField = new javax.swing.JTextField();
+        staffNoLabel = new javax.swing.JLabel();
+        tableScroll = new javax.swing.JScrollPane();
+        txTable = new javax.swing.JTable();
+        companyLabel = new javax.swing.JLabel();
+        mainPanel = new javax.swing.JPanel();
+        txPanel = new javax.swing.JPanel();
         enterTxIdLabel = new javax.swing.JLabel();
-        enterTxIdTextField = new javax.swing.JTextField();
-        goButton2 = new javax.swing.JButton();
-        transactionLabel = new javax.swing.JLabel();
-        txDetialPanel = new javax.swing.JPanel();
-        accountTextField = new javax.swing.JTextField();
-        ownerTextField = new javax.swing.JTextField();
+        enterTxidTextField = new javax.swing.JTextField();
+        go2Button = new javax.swing.JButton();
+        txDetailPanel = new javax.swing.JPanel();
         accountLabel = new javax.swing.JLabel();
         ownerLabel = new javax.swing.JLabel();
+        accountTextField = new javax.swing.JTextField();
+        ownerTextField = new javax.swing.JTextField();
         amountLabel = new javax.swing.JLabel();
         amountTextField = new javax.swing.JTextField();
-        tranferLabel = new javax.swing.JLabel();
+        transferLabel = new javax.swing.JLabel();
         transferTextField = new javax.swing.JTextField();
         confirmButton = new javax.swing.JButton();
         reportButton = new javax.swing.JButton();
+        txLabel = new javax.swing.JLabel();
         staffPanel = new javax.swing.JPanel();
         staffIdLabel = new javax.swing.JLabel();
         staffIdTextField = new javax.swing.JTextField();
         staffPwdLabel = new javax.swing.JLabel();
-        goButton3 = new javax.swing.JButton();
+        confirm2Button = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         staffPwdField = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        setResizable(false);
+        setTitle("Drowsiness Application");
 
-        mainPanel.setPreferredSize(new java.awt.Dimension(570, 480));
-        mainPanel.setLayout(new java.awt.CardLayout());
+        refreshButton.setBackground(new java.awt.Color(204, 204, 255));
+        refreshButton.setText("Update query");
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshButtonActionPerformed(evt);
+            }
+        });
 
-        txTable.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        startButton.setBackground(new java.awt.Color(0, 102, 255));
+        startButton.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        startButton.setForeground(new java.awt.Color(255, 255, 255));
+        startButton.setText("Start data checking");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+
+        staffNoField.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+
+        staffNoLabel.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        staffNoLabel.setText("Staff no.");
+
         txTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -318,120 +349,72 @@ public final class GUIClass extends JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        txTable.setToolTipText("");
-        txTable.setAlignmentX(1.0F);
-        txTable.setAlignmentY(1.0F);
-        txTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        txTable.setFocusable(false);
-        txTable.setGridColor(new java.awt.Color(204, 204, 204));
-        txTable.setOpaque(false);
-        txTable.setRowHeight(20);
-        txTable.setShowGrid(true);
-        jScrollPane1.setViewportView(txTable);
+        tableScroll.setViewportView(txTable);
 
-        goButton.setBackground(new java.awt.Color(153, 204, 255));
-        goButton.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        goButton.setText("Go");
-        goButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goButtonActionPerformed(evt);
-            }
-        });
-
-        refreshButton.setBackground(new java.awt.Color(149, 215, 248));
-        refreshButton.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        refreshButton.setText("Refresh");
-        refreshButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                refreshButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setBackground(new java.awt.Color(255, 130, 27));
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("X Company");
-        jLabel1.setOpaque(true);
+        companyLabel.setBackground(new java.awt.Color(255, 102, 51));
+        companyLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        companyLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        companyLabel.setText("X Company");
+        companyLabel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        companyLabel.setOpaque(true);
 
         javax.swing.GroupLayout companyPanelLayout = new javax.swing.GroupLayout(companyPanel);
         companyPanel.setLayout(companyPanelLayout);
         companyPanelLayout.setHorizontalGroup(
             companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, companyPanelLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(goButton)
-                .addGap(60, 60, 60))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, companyPanelLayout.createSequentialGroup()
-                .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(companyPanelLayout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tableScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
                     .addGroup(companyPanelLayout.createSequentialGroup()
-                        .addContainerGap(24, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(companyPanelLayout.createSequentialGroup()
-                        .addGap(47, 47, 47)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(companyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(refreshButton)))
-                .addGap(36, 36, 36))
+                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(refreshButton)
+                            .addGroup(companyPanelLayout.createSequentialGroup()
+                                .addComponent(staffNoLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(startButton, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGap(29, 29, 29))
         );
         companyPanelLayout.setVerticalGroup(
             companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(companyPanelLayout.createSequentialGroup()
-                .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(28, 28, 28)
+                .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(companyPanelLayout.createSequentialGroup()
-                        .addGap(82, 82, 82)
-                        .addComponent(refreshButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, companyPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)))
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
-                .addComponent(goButton)
+                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(staffNoLabel)
+                            .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(startButton))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(refreshButton))
+                    .addComponent(companyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(tableScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        mainPanel.add(companyPanel, "companyPanel");
-
-        transactionPanel.setOpaque(false);
+        mainPanel.setLayout(new java.awt.CardLayout());
 
         enterTxIdLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        enterTxIdLabel.setText("Please Enter Transaction ID");
-        enterTxIdLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        enterTxIdLabel.setText("Please enter transaction ID");
 
-        enterTxIdTextField.setBackground(new java.awt.Color(222, 203, 229));
-        enterTxIdTextField.addActionListener(new java.awt.event.ActionListener() {
+        enterTxidTextField.setBackground(new java.awt.Color(240, 219, 248));
+
+        go2Button.setBackground(new java.awt.Color(153, 204, 255));
+        go2Button.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        go2Button.setText("Go");
+        go2Button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                enterTxIdTextFieldActionPerformed(evt);
+                go2ButtonActionPerformed(evt);
             }
         });
 
-        goButton2.setBackground(new java.awt.Color(153, 204, 255));
-        goButton2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        goButton2.setText("Go");
-        goButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goButton2ActionPerformed(evt);
-            }
-        });
-
-        transactionLabel.setBackground(new java.awt.Color(180, 198, 125));
-        transactionLabel.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
-        transactionLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        transactionLabel.setText("Transaction");
-        transactionLabel.setOpaque(true);
-
-        txDetialPanel.setBackground(new java.awt.Color(253, 239, 216));
-        txDetialPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        accountTextField.setBackground(new java.awt.Color(218, 236, 255));
-
-        ownerTextField.setBackground(new java.awt.Color(218, 236, 255));
-        ownerTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ownerTextFieldActionPerformed(evt);
-            }
-        });
+        txDetailPanel.setBackground(new java.awt.Color(255, 243, 227));
+        txDetailPanel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
         accountLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         accountLabel.setText("Bank Account");
@@ -439,23 +422,30 @@ public final class GUIClass extends JFrame {
         ownerLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         ownerLabel.setText("Owner");
 
+        accountTextField.setEditable(false);
+        accountTextField.setBackground(new java.awt.Color(227, 227, 255));
+        accountTextField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+
+        ownerTextField.setEditable(false);
+        ownerTextField.setBackground(new java.awt.Color(227, 227, 255));
+        ownerTextField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+
         amountLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        amountLabel.setText("Amout Due");
+        amountLabel.setText("Amount Due");
 
-        amountTextField.setBackground(new java.awt.Color(218, 236, 255));
-        amountTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                amountTextFieldActionPerformed(evt);
-            }
-        });
+        amountTextField.setEditable(false);
+        amountTextField.setBackground(new java.awt.Color(227, 227, 255));
+        amountTextField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
-        tranferLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        tranferLabel.setText("Amount Transferred");
+        transferLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        transferLabel.setText("Amount Transferred");
 
-        transferTextField.setBackground(new java.awt.Color(218, 236, 255));
+        transferTextField.setEditable(false);
+        transferTextField.setBackground(new java.awt.Color(227, 227, 255));
+        transferTextField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
-        confirmButton.setBackground(new java.awt.Color(0, 255, 102));
-        confirmButton.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        confirmButton.setBackground(new java.awt.Color(0, 204, 51));
+        confirmButton.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         confirmButton.setText("Confirm");
         confirmButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -463,8 +453,8 @@ public final class GUIClass extends JFrame {
             }
         });
 
-        reportButton.setBackground(new java.awt.Color(255, 51, 51));
-        reportButton.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        reportButton.setBackground(new java.awt.Color(255, 51, 0));
+        reportButton.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         reportButton.setText("Report");
         reportButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -472,130 +462,141 @@ public final class GUIClass extends JFrame {
             }
         });
 
-        javax.swing.GroupLayout txDetialPanelLayout = new javax.swing.GroupLayout(txDetialPanel);
-        txDetialPanel.setLayout(txDetialPanelLayout);
-        txDetialPanelLayout.setHorizontalGroup(
-            txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                .addGap(44, 44, 44)
-                .addComponent(accountLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(ownerLabel)
-                .addGap(67, 67, 67))
-            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(txDetialPanelLayout.createSequentialGroup()
-                        .addGap(29, 29, 29)
-                        .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                                .addComponent(confirmButton)
-                                .addGap(46, 46, 46))
-                            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                                .addComponent(amountLabel)
-                                .addGap(57, 57, 57))
-                            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                                .addComponent(transferTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(46, 46, 46)))
-                        .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(ownerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txDetialPanelLayout.createSequentialGroup()
-                                .addComponent(reportButton)
-                                .addGap(40, 40, 40))))
-                    .addGroup(txDetialPanelLayout.createSequentialGroup()
-                        .addGap(20, 20, 20)
-                        .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(accountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(tranferLabel)))
-                    .addGroup(txDetialPanelLayout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addComponent(amountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        javax.swing.GroupLayout txDetailPanelLayout = new javax.swing.GroupLayout(txDetailPanel);
+        txDetailPanel.setLayout(txDetailPanelLayout);
+        txDetailPanelLayout.setHorizontalGroup(
+            txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txDetailPanelLayout.createSequentialGroup()
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txDetailPanelLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(41, 41, 41))
+                    .addGroup(txDetailPanelLayout.createSequentialGroup()
+                        .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(txDetailPanelLayout.createSequentialGroup()
+                                .addGap(38, 38, 38)
+                                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(transferTextField, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
+                                    .addComponent(amountTextField, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(accountTextField, javax.swing.GroupLayout.Alignment.LEADING)))
+                            .addGroup(txDetailPanelLayout.createSequentialGroup()
+                                .addGap(68, 68, 68)
+                                .addComponent(accountLabel)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)))
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txDetailPanelLayout.createSequentialGroup()
+                        .addComponent(reportButton, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(63, 63, 63))
+                    .addGroup(txDetailPanelLayout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(ownerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(37, 37, 37))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txDetailPanelLayout.createSequentialGroup()
+                        .addComponent(ownerLabel)
+                        .addGap(84, 84, 84))))
+            .addGroup(txDetailPanelLayout.createSequentialGroup()
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(txDetailPanelLayout.createSequentialGroup()
+                        .addGap(51, 51, 51)
+                        .addComponent(transferLabel))
+                    .addGroup(txDetailPanelLayout.createSequentialGroup()
+                        .addGap(71, 71, 71)
+                        .addComponent(amountLabel)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        txDetialPanelLayout.setVerticalGroup(
-            txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(txDetialPanelLayout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        txDetailPanelLayout.setVerticalGroup(
+            txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(txDetailPanelLayout.createSequentialGroup()
+                .addGap(38, 38, 38)
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(accountLabel)
                     .addComponent(ownerLabel))
                 .addGap(18, 18, 18)
-                .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(ownerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(accountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(accountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ownerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(36, 36, 36)
                 .addComponent(amountLabel)
                 .addGap(18, 18, 18)
                 .addComponent(amountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(tranferLabel)
+                .addGap(25, 25, 25)
+                .addComponent(transferLabel)
                 .addGap(18, 18, 18)
                 .addComponent(transferTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
-                .addGroup(txDetialPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(confirmButton)
-                    .addComponent(reportButton))
-                .addGap(44, 44, 44))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
+                .addGroup(txDetailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(reportButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(52, 52, 52))
         );
 
-        javax.swing.GroupLayout transactionPanelLayout = new javax.swing.GroupLayout(transactionPanel);
-        transactionPanel.setLayout(transactionPanelLayout);
-        transactionPanelLayout.setHorizontalGroup(
-            transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(transactionPanelLayout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        txLabel.setBackground(new java.awt.Color(158, 182, 131));
+        txLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        txLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        txLabel.setText("Transaction");
+        txLabel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        txLabel.setOpaque(true);
+
+        javax.swing.GroupLayout txPanelLayout = new javax.swing.GroupLayout(txPanel);
+        txPanel.setLayout(txPanelLayout);
+        txPanelLayout.setHorizontalGroup(
+            txPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(txPanelLayout.createSequentialGroup()
+                .addGroup(txPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(txPanelLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(txPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(enterTxIdLabel)
+                            .addComponent(go2Button)))
+                    .addComponent(enterTxidTextField))
+                .addGap(18, 18, 18)
+                .addComponent(txDetailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, txPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(txLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(142, 142, 142))
+        );
+        txPanelLayout.setVerticalGroup(
+            txPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(txPanelLayout.createSequentialGroup()
+                .addGroup(txPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(txPanelLayout.createSequentialGroup()
+                        .addGap(191, 191, 191)
                         .addComponent(enterTxIdLabel)
-                        .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(goButton2))
-                .addGap(18, 18, 18)
-                .addGroup(transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(transactionPanelLayout.createSequentialGroup()
-                        .addComponent(txDetialPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, transactionPanelLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(112, 112, 112))))
-        );
-        transactionPanelLayout.setVerticalGroup(
-            transactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(transactionPanelLayout.createSequentialGroup()
-                .addGap(162, 162, 162)
-                .addComponent(enterTxIdLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(enterTxIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(goButton2)
-                .addGap(214, 214, 214))
-            .addGroup(transactionPanelLayout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addComponent(transactionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(txDetialPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(24, 24, 24))
+                        .addGap(18, 18, 18)
+                        .addComponent(enterTxidTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(go2Button))
+                    .addGroup(txPanelLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(txLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(txDetailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
-        mainPanel.add(transactionPanel, "transactionPanel");
+        mainPanel.add(txPanel, "txPanel");
 
         staffIdLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         staffIdLabel.setText("Staff ID");
 
-        staffIdTextField.setBackground(new java.awt.Color(215, 215, 248));
+        staffIdTextField.setBackground(new java.awt.Color(251, 233, 255));
 
         staffPwdLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         staffPwdLabel.setText("Staff Password");
 
-        goButton3.setBackground(new java.awt.Color(0, 255, 51));
-        goButton3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        goButton3.setText("Confirm");
-        goButton3.addActionListener(new java.awt.event.ActionListener() {
+        confirm2Button.setBackground(new java.awt.Color(0, 255, 51));
+        confirm2Button.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        confirm2Button.setText("Confirm");
+        confirm2Button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goButton3ActionPerformed(evt);
+                confirm2ButtonActionPerformed(evt);
             }
         });
 
-        cancelButton.setBackground(new java.awt.Color(255, 51, 51));
+        cancelButton.setBackground(new java.awt.Color(255, 51, 0));
         cancelButton.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         cancelButton.setText("Cancel");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
@@ -604,47 +605,52 @@ public final class GUIClass extends JFrame {
             }
         });
 
-        staffPwdField.setBackground(new java.awt.Color(215, 215, 248));
+        staffPwdField.setBackground(new java.awt.Color(251, 233, 255));
+        staffPwdField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staffPwdFieldActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout staffPanelLayout = new javax.swing.GroupLayout(staffPanel);
         staffPanel.setLayout(staffPanelLayout);
         staffPanelLayout.setHorizontalGroup(
             staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(staffIdLabel)
+                .addGap(266, 266, 266))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(staffPwdLabel)
+                .addGap(239, 239, 239))
             .addGroup(staffPanelLayout.createSequentialGroup()
-                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(201, 201, 201)
+                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(staffPwdField)
+                    .addComponent(staffIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(staffPanelLayout.createSequentialGroup()
-                        .addGap(50, 50, 50)
-                        .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(staffPanelLayout.createSequentialGroup()
-                                .addComponent(goButton3)
-                                .addGap(36, 36, 36)
-                                .addComponent(cancelButton))
-                            .addComponent(staffPwdField)
-                            .addComponent(staffIdTextField)))
-                    .addGroup(staffPanelLayout.createSequentialGroup()
-                        .addGap(124, 124, 124)
-                        .addComponent(staffIdLabel))
-                    .addGroup(staffPanelLayout.createSequentialGroup()
-                        .addGap(96, 96, 96)
-                        .addComponent(staffPwdLabel)))
-                .addContainerGap(305, Short.MAX_VALUE))
+                        .addComponent(confirm2Button)
+                        .addGap(18, 18, 18)
+                        .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(194, Short.MAX_VALUE))
         );
         staffPanelLayout.setVerticalGroup(
             staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(staffPanelLayout.createSequentialGroup()
-                .addGap(67, 67, 67)
+                .addGap(85, 85, 85)
                 .addComponent(staffIdLabel)
                 .addGap(18, 18, 18)
-                .addComponent(staffIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(44, 44, 44)
+                .addComponent(staffIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(30, 30, 30)
                 .addComponent(staffPwdLabel)
                 .addGap(18, 18, 18)
-                .addComponent(staffPwdField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(51, 51, 51)
+                .addComponent(staffPwdField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(46, 46, 46)
                 .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(goButton3)
+                    .addComponent(confirm2Button)
                     .addComponent(cancelButton))
-                .addContainerGap(156, Short.MAX_VALUE))
+                .addContainerGap(170, Short.MAX_VALUE))
         );
 
         mainPanel.add(staffPanel, "staffPanel");
@@ -653,98 +659,160 @@ public final class GUIClass extends JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(companyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(companyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void enterTxIdTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterTxIdTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_enterTxIdTextFieldActionPerformed
-
-    private void amountTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_amountTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_amountTextFieldActionPerformed
-
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
         // TODO add your handling code here:
-        if (txDetialPanel.isVisible()) {
+        if (dataCheckingStage == 0) {
+            JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
+            return;
+        }
+        if (isTxShown) {
             clearStaffPage();
             card.show(mainPanel, "staffPanel");
         } else {
             JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
         }
-    }//GEN-LAST:event_confirmButtonActionPerformed
 
-    private void ownerTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ownerTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_ownerTextFieldActionPerformed
+    }//GEN-LAST:event_confirmButtonActionPerformed
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
         // TODO add your handling code here:
         setTableData();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
-    private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
-        // TODO add your handling code here:
-        //saveCursorLocation();
-        //saveKeyPressed();
-        card.show(mainPanel, "transactionPanel");
-        txDetialPanel.setVisible(false);
-        transactionLabel.setVisible(false);
-    }//GEN-LAST:event_goButtonActionPerformed
-
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
         // TODO add your handling code here:
-        card.show(mainPanel, "staffPanel");
+        if (dataCheckingStage == 0) {
+            JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
+            return;
+        }
+        if (isTxShown) {
+            clearStaffPage();
+            card.show(mainPanel, "staffPanel");
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_reportButtonActionPerformed
 
-    private void goButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton3ActionPerformed
+    private void confirm2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirm2ButtonActionPerformed
         // TODO add your handling code here:
         if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
-            //setTableData();
-            card.show(mainPanel, "companyPanel");
-            enterTxIdTextField.setText("");
+            for (int i = 0; i < tmpData.size(); i++) {
+                if (selectedId == tmpData.get(i).getId()) {
+                    tmpData.remove(i);
+                    corrected++;
+                    setTableData(numberOfTx[GUIClass.count] - corrected);
+                    break;
+                }
+            }
+            card.show(mainPanel, "txPanel");
+            enterTxidTextField.setText("");
+            isTxShown = false;
             clearStaffPage();
+            clearTransactionPage();
         } else {
             JOptionPane.showMessageDialog(rootPane, "Username or password is not correct!", "Error", ERROR_MESSAGE);
         }
+    }//GEN-LAST:event_confirm2ButtonActionPerformed
 
-    }//GEN-LAST:event_goButton3ActionPerformed
+    private void staffPwdFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staffPwdFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_staffPwdFieldActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         // TODO add your handling code here:
         clearStaffPage();
-        card.show(mainPanel, "transactionPanel");
+        card.show(mainPanel, "txPanel");
     }//GEN-LAST:event_cancelButtonActionPerformed
 
-    private void goButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButton2ActionPerformed
+    private void go2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_go2ButtonActionPerformed
         // TODO add your handling code here:
-        if (enterTxIdTextField.getText().isBlank()) {
+        if (dataCheckingStage == 0) {
+            JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
+            return;
+        }
+        if (enterTxidTextField.getText().isBlank()) {
             JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
         } else {
             try {
-                int number = Integer.parseInt(enterTxIdTextField.getText());
+                int number = Integer.parseInt(enterTxidTextField.getText());
                 if (!isTxidCorrect(number)) {
                     JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found!", "Error", ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ne) {
                 JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Error", ERROR_MESSAGE);
             }
-        }/*
-        if (enterTxIdTextField.getText().isBlank() || !isTxidCorrect(Integer.parseInt(enterTxIdTextField.getText()))) {
-            JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found.", "Error", ERROR_MESSAGE);
-        }*/
+        }
+    }//GEN-LAST:event_go2ButtonActionPerformed
 
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        // TODO add your handling code here:
+        if (dataCheckingStage == 0) {
+            if (staffNoField.getText().isBlank()) {
+                JOptionPane.showMessageDialog(rootPane, "Please enter Staff no.!", "Error", ERROR_MESSAGE);
+            } else {
+                try {
+                    int number = Integer.parseInt(staffNoField.getText());
+                    startButton.setText("Stop data checking");
+                    String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                    fileName = startTime.substring(0, 4) + startTime.substring(5, 7) + startTime.substring(8, 10) + "_" + number;
+                    dataCheckingStage = 1;
 
-    }//GEN-LAST:event_goButton2ActionPerformed
+                    coreTime = new java.util.Timer();
+                    coreTime.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            saveKeyPressed();
+                            saveCursorLocation();
+                            cursorLocations = new ArrayList<>();
+                            keysPressed = new ArrayList<>();
+                        }
+                    }, 5000, 5000);
+                    executor = Executors.newScheduledThreadPool(1);
+                    executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
+
+                    for (int i = 0; i < actions.length; i++) {
+                        timer = new Timer(900000 * i, actions[i]);
+                        timer.setRepeats(false);
+                        timer.start();
+                    }
+
+                } catch (NumberFormatException ne) {
+                    staffNoField.setText("");
+                    JOptionPane.showMessageDialog(rootPane, "Staff no. must be a number!", "Error", ERROR_MESSAGE);
+                }
+            }
+            staffNoField.setText("");
+        } else if (dataCheckingStage == 1) {
+            startButton.setText("Start data checking");
+
+            GUIClass.count = 0;
+            timer.stop();
+            coreTime.cancel();
+            executor.shutdownNow();
+
+            dataCheckingStage = 0;
+            corrected = 0;
+            selectedId = -1;
+            setTableData();
+        }
+
+    }//GEN-LAST:event_startButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -763,28 +831,33 @@ public final class GUIClass extends JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        //</editor-fold>
 
+        Random rd = new Random();
+
+        /*for(int i = 0; i < 20; i++){
+            double t1 = rd.nextDouble()*50000;
+            double t2 = rd.nextDouble()*(t1/2);
+            System.out.println(df2.format(t1) + ", " + df2.format(t2) + ", " + df2.format(t1/t2));
+        }*/
+        long startId = 11132334800l;
+        double amount;
+        double transfer;
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
         samples = new ArrayList<>();
         samples.add(new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
         samples.add(new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
         samples.add(new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        for (int i = 0; i < 55; i++) {
+        for (int i = 0; i < 100; i++) {
             String type, bank;
             if (i % 5 == 0) {
                 bank = "SCB";
@@ -800,7 +873,16 @@ public final class GUIClass extends JFrame {
             } else {
                 type = "Credit";
             }
-            samples.add(new Transaction(1137 + i, type, bank, "11132334" + i, "Dummy " + i, 100 + i, 50 + i));
+
+            amount = rd.nextDouble() * 50000;
+            transfer = rd.nextDouble() * (amount / 2);
+
+            if (rd.nextInt(2) == 1) {
+                transfer = 0;
+            }
+
+            samples.add(new Transaction(1137 + i, type, bank, startId + i + "", "Dummy " + i, amount, amount - transfer));
+
         }
 
         /* Create and display the form */
@@ -809,7 +891,6 @@ public final class GUIClass extends JFrame {
                 new GUIClass().setVisible(true);
             }
         });
-
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -818,15 +899,13 @@ public final class GUIClass extends JFrame {
     private javax.swing.JLabel amountLabel;
     private javax.swing.JTextField amountTextField;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JLabel companyLabel;
     private javax.swing.JPanel companyPanel;
+    private javax.swing.JButton confirm2Button;
     private javax.swing.JButton confirmButton;
     private javax.swing.JLabel enterTxIdLabel;
-    private javax.swing.JTextField enterTxIdTextField;
-    private javax.swing.JButton goButton;
-    private javax.swing.JButton goButton2;
-    private javax.swing.JButton goButton3;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextField enterTxidTextField;
+    private javax.swing.JButton go2Button;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JLabel ownerLabel;
     private javax.swing.JTextField ownerTextField;
@@ -834,14 +913,18 @@ public final class GUIClass extends JFrame {
     private javax.swing.JButton reportButton;
     private javax.swing.JLabel staffIdLabel;
     private javax.swing.JTextField staffIdTextField;
+    private javax.swing.JTextField staffNoField;
+    private javax.swing.JLabel staffNoLabel;
     private javax.swing.JPanel staffPanel;
     private javax.swing.JPasswordField staffPwdField;
     private javax.swing.JLabel staffPwdLabel;
-    private javax.swing.JLabel tranferLabel;
-    private javax.swing.JLabel transactionLabel;
-    private javax.swing.JPanel transactionPanel;
+    private javax.swing.JButton startButton;
+    private javax.swing.JScrollPane tableScroll;
+    private javax.swing.JLabel transferLabel;
     private javax.swing.JTextField transferTextField;
-    private javax.swing.JPanel txDetialPanel;
+    private javax.swing.JPanel txDetailPanel;
+    private javax.swing.JLabel txLabel;
+    private javax.swing.JPanel txPanel;
     private javax.swing.JTable txTable;
     // End of variables declaration//GEN-END:variables
 }
