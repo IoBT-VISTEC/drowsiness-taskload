@@ -12,6 +12,14 @@ class Point {
     private int x;
     private int y;
     private String timePoint;
+    private String event;
+
+    public Point(int x, int y, String timePoint, String event) {
+        this.x = x;
+        this.y = y;
+        this.timePoint = timePoint;
+        this.event = event;
+    }
     
     public Point(int x, int y, String time){
         this.x = x;
@@ -46,6 +54,14 @@ class Point {
 
     public void setTimePoint(String timePoint) {
         this.timePoint = timePoint;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
     }
     
 }
