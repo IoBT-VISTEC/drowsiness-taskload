@@ -30,7 +30,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import javax.swing.Timer;
+import java.util.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -44,25 +44,27 @@ public class GUIClass extends javax.swing.JFrame {
     private static CardLayout card;
     private static HashMap<Integer, Transaction> samples;
     private static StaffAccount staff;
-    private static ActionListener[] actions;
-    private static Timer timer;
+    //private static ActionListener[] actions;
+    //private static Timer timer;
     private List<Point> cursorLocations;
     private List<KeyClass> keysPressed;
     private List<Integer> tmpData;
-    //private static HashMap<Integer, Transaction> tmpData;
+    private List<Integer> stackData;
     private String fileName;
-    private static final int[] numberOfTx = {15, 13, 11, 9, 7, 5, 3, 2};
+    //private static final int[] numberOfTx = {15, 13, 11, 9, 7, 5, 3, 2};
     public static int count = -1;
     private boolean isTxShown = false;
     private int selectedId;
     private int dataCheckingStage;
-    private java.util.Timer coreTime;
+    private Timer coreTime;
     private Runnable collectCursor;
+    private Runnable refreshData;
     private ScheduledExecutorService executor;
     private DecimalFormat df2 = new DecimalFormat("#,###.##");
     private int staffID;
     private Transaction currentTx;
-    
+    private Timer randomTime;
+
     /**
      * Creates new form GUIClass
      */
@@ -72,10 +74,11 @@ public class GUIClass extends javax.swing.JFrame {
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
-        initActions();
+        //initActions();
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
         dataCheckingStage = 0;
+        stackData = new ArrayList<>();
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
@@ -96,6 +99,13 @@ public class GUIClass extends javax.swing.JFrame {
             }
         };
 
+        refreshData = new Runnable() {
+            @Override
+            public void run() {
+                autoSetTable(true);
+            }
+        };
+
     }
 
     public void setTableData() {
@@ -107,28 +117,37 @@ public class GUIClass extends javax.swing.JFrame {
         for (Transaction val : vals) {
             model.insertRow(i++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
-        /*for (Map.Entry<Integer, Transaction> e : samples.entrySet()) {
-            val = e.getValue();
-            model.insertRow(i++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
-        }*/
- /*Collections.shuffle(samples);
-        for (int i = 0; i < samples.size(); i++) {
-            model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
-        }*/
     }
 
     public void setTableData(int num) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
-        Transaction tmp;
+        List<Integer> keys = new ArrayList<>(samples.keySet());
+        Collections.shuffle(keys);
+        Transaction val;
+        tmpData = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            tmp = samples.get(tmpData.get(i));
-            model.insertRow(i, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
+            tmpData.add(keys.get(i));
+            val = samples.get(keys.get(i));
+            model.insertRow(i, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
-        /*for(Map.Entry<Integer, Transaction> entry: tmpData.entrySet()){
-            tmp = entry.getValue();
+    }
+
+    public void autoSetTable(boolean update) {
+        DefaultTableModel model = (DefaultTableModel) txTable.getModel();
+        model.setRowCount(0);
+        int i = 0;
+        Transaction tmp;
+        if (update) {
+            for (Integer idx : stackData) {
+                tmpData.add(idx);
+            }
+            stackData = new ArrayList<>();
+        }
+        for (Integer idx : tmpData) {
+            tmp = samples.get(idx);
             model.insertRow(i++, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
-        }*/
+        }
     }
 
     public void setTableHeader() {
@@ -164,23 +183,6 @@ public class GUIClass extends javax.swing.JFrame {
             return true;
         }
         return false;
-        /*for (int i = 0; i < tmpData.size(); i++) {
-            if (tmpData.get(i).getId() == txid) {
-                Transaction tmp = tmpData.get(i);
-                accountTextField.setText(tmp.getAccount());
-                ownerTextField.setText(tmp.getOwner());
-                //amountTextField.setText("" + tmp.getAmountDue());
-                //transferTextField.setText("" + tmp.getAmountTransfer());
-
-                amountTextField.setText(df2.format(tmp.getAmountDue()));
-                transferTextField.setText(df2.format(tmp.getAmountTransfer()));
-
-                selectedId = tmp.getId();
-                isTxShown = true;
-
-                return true;
-            }
-        }*/
     }
 
     public void addCursorLocation(String event) {
@@ -202,7 +204,7 @@ public class GUIClass extends javax.swing.JFrame {
         staffPwdField.setText("");
     }
 
-    public void initActions() {
+    /*public void initActions() {
         actions = new ActionListener[numberOfTx.length];
         for (int i = 0; i < actions.length; i++) {
             actions[i] = new ActionListener() {
@@ -214,16 +216,6 @@ public class GUIClass extends javax.swing.JFrame {
                     List<Integer> keys = new ArrayList<>(samples.keySet());
                     Collections.shuffle(keys);
                     tmpData = new ArrayList<>();
-                    /*for (Map.Entry<Integer, Transaction> entry : samples.entrySet()) {
-                        val = entry.getValue();
-                        tmpData.add(entry.getKey());
-                        model.insertRow(j++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
-                        if (j >= GUIClass.numberOfTx[GUIClass.count]) {
-                            break;
-                        }
-                    }*/
-
-                    //Collections.shuffle(samples);
                     for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
                         int idx = keys.get(j);
                         tmpData.add(idx);
@@ -232,8 +224,7 @@ public class GUIClass extends javax.swing.JFrame {
                 }
             };
         }
-    }
-
+    }*/
     public void saveKeyPressed() {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -302,7 +293,7 @@ public class GUIClass extends javax.swing.JFrame {
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
         String amountDue = df2.format(currentTx.getAmountDue());
         String transfer = df2.format(currentTx.getAmountTransfer());
-        
+
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
@@ -784,13 +775,13 @@ public class GUIClass extends javax.swing.JFrame {
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
         // TODO add your handling code here:
-        setTableData();
+        autoSetTable(true);
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
         // TODO add your handling code here:
         addCursorLocation("Report_button");
-        
+
         if (dataCheckingStage == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
             return;
@@ -809,26 +800,18 @@ public class GUIClass extends javax.swing.JFrame {
         if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
-            /*for (int i = 0; i < tmpData.size(); i++) {
-                if (selectedId == tmpData.get(i).getId()) {
-                    tmpData.remove(i);
-                    corrected++;
-                    setTableData(numberOfTx[GUIClass.count] - corrected);
-                    break;
-                }
-            }*/
             tmpData.remove((Integer) selectedId);
             samples.remove(selectedId);
-            //List<Transaction> valuesList = new ArrayList<>(samples.values());
-            List<Integer> keys = new ArrayList<>(samples.keySet());
+            autoSetTable(false);
+            /*List<Integer> keys = new ArrayList<>(samples.keySet());
             int randIdx = new Random().nextInt(keys.size());
             while (isDuplicate(keys.get(randIdx))) {
                 randIdx = new Random().nextInt(keys.size());
             }
-            tmpData.add(keys.get(randIdx));
+            tmpData.add(keys.get(randIdx));*/
             //corrected++;
             //setTableData(numberOfTx[GUIClass.count] - corrected);
-            setTableData(numberOfTx[GUIClass.count]);
+            //setTableData(numberOfTx[GUIClass.count]);
             card.show(mainPanel, "txPanel");
             enterTxidTextField.setText("");
             isTxShown = false;
@@ -882,7 +865,7 @@ public class GUIClass extends javax.swing.JFrame {
                     String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
                     fileName = startTime.substring(0, 4) + startTime.substring(5, 7) + startTime.substring(8, 10) + "_" + staffID;
                     dataCheckingStage = 1;
-
+                    setTableData(15);
                     coreTime = new java.util.Timer();
                     coreTime.schedule(new TimerTask() {
                         @Override
@@ -893,15 +876,22 @@ public class GUIClass extends javax.swing.JFrame {
                             keysPressed = new ArrayList<>();
                         }
                     }, 1000, 1000);
-                    executor = Executors.newScheduledThreadPool(1);
+                    randomTime = new Timer();
+                    randomTime.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            List<Integer> keys = new ArrayList<>(samples.keySet());
+                            int randIdx = new Random().nextInt(keys.size());
+                            while (isDuplicate(keys.get(randIdx))) {
+                                randIdx = new Random().nextInt(keys.size());
+                            }
+                            stackData.add(keys.get(randIdx));
+                            System.out.println(keys.get(randIdx));
+                        }
+                    }, (15 + new Random().nextInt(16)) * 1000, (15 + new Random().nextInt(16)) * 1000);
+                    executor = Executors.newScheduledThreadPool(2);
                     executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
-
-                    for (int i = 0; i < actions.length; i++) {
-                        timer = new Timer(900000 * i, actions[i]);
-                        //timer = new Timer(30000 * i, actions[i]);
-                        timer.setRepeats(false);
-                        timer.start();
-                    }
+                    executor.scheduleAtFixedRate(refreshData, 15, 15, TimeUnit.MINUTES);
 
                 } catch (NumberFormatException ne) {
                     staffNoField.setText("");
@@ -913,7 +903,7 @@ public class GUIClass extends javax.swing.JFrame {
             startButton.setText("Start data checking");
 
             GUIClass.count = 0;
-            timer.stop();
+            //timer.stop();
             coreTime.cancel();
             executor.shutdownNow();
 
@@ -962,47 +952,12 @@ public class GUIClass extends javax.swing.JFrame {
 
         Random rd = new Random();
 
-        /*for(int i = 0; i < 20; i++){
-            double t1 = rd.nextDouble()*50000;
-            double t2 = rd.nextDouble()*(t1/2);
-            System.out.println(df2.format(t1) + ", " + df2.format(t2) + ", " + df2.format(t1/t2));
-        }*/
         long startId = 11132334800l;
         double amount;
         double transfer;
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
-        /*samples = new ArrayList<>();
-        samples.add(new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
-        samples.add(new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
-        samples.add(new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        for (int i = 0; i < 100; i++) {
-            String type, bank;
-            if (i % 5 == 0) {
-                bank = "SCB";
-            } else if (i % 3 == 0) {
-                bank = "TMB";
-            } else if (i % 2 == 0) {
-                bank = "KBANK";
-            } else {
-                bank = "KTB";
-            }
-            if (i % 2 == 0) {
-                type = "Transaction";
-            } else {
-                type = "Credit";
-            }
 
-            amount = rd.nextDouble() * 50000;
-            transfer = rd.nextDouble() * (amount / 2);
-
-            if (rd.nextInt(2) == 1) {
-                transfer = 0;
-            }
-
-            samples.add(new Transaction(1137 + i, type, bank, startId + (3*i) + "", "Dummy " + i, amount, amount - transfer));
-
-        }*/
         int txID;
         samples = new HashMap<>();
         samples.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
