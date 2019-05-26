@@ -121,8 +121,7 @@ public class GUIClass extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         Transaction tmp;
-        int i = 0;
-        for (i = 0; i < num; i++) {
+        for (int i = 0; i < num; i++) {
             tmp = samples.get(tmpData.get(i));
             model.insertRow(i, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
         }
@@ -1009,7 +1008,7 @@ public class GUIClass extends javax.swing.JFrame {
         samples.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
         samples.put(1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
         samples.put(1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 300; i++) {
             String type, bank;
             if (i % 5 == 0) {
                 bank = "SCB";
