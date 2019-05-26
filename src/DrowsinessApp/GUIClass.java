@@ -19,10 +19,10 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -56,13 +56,13 @@ public class GUIClass extends javax.swing.JFrame {
     private boolean isTxShown = false;
     private int selectedId;
     private int dataCheckingStage;
-    private int corrected;
     private java.util.Timer coreTime;
     private Runnable collectCursor;
     private ScheduledExecutorService executor;
     private DecimalFormat df2 = new DecimalFormat("#,###.##");
     private int staffID;
-
+    private Transaction currentTx;
+    
     /**
      * Creates new form GUIClass
      */
@@ -76,7 +76,6 @@ public class GUIClass extends javax.swing.JFrame {
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
         dataCheckingStage = 0;
-        corrected = 0;
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
@@ -102,20 +101,23 @@ public class GUIClass extends javax.swing.JFrame {
     public void setTableData() {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
-        Transaction val;
         int i = 0;
-        for (Map.Entry<Integer, Transaction> e : samples.entrySet()) {
-            val = e.getValue();
+        List<Transaction> vals = new ArrayList<>(samples.values());
+        Collections.shuffle(vals);
+        for (Transaction val : vals) {
             model.insertRow(i++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
-        /*Collections.shuffle(samples);
+        /*for (Map.Entry<Integer, Transaction> e : samples.entrySet()) {
+            val = e.getValue();
+            model.insertRow(i++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
+        }*/
+ /*Collections.shuffle(samples);
         for (int i = 0; i < samples.size(); i++) {
             model.insertRow(i, new Object[]{samples.get(i).getId(), samples.get(i).getType(), samples.get(i).getBank(), samples.get(i).getAccount()});
         }*/
     }
 
     public void setTableData(int num) {
-        System.out.println(num);
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         Transaction tmp;
@@ -152,12 +154,12 @@ public class GUIClass extends javax.swing.JFrame {
 
     public boolean isTxidCorrect(int txid) {
         if (isDuplicate(txid) && samples.get(txid) != null) {
-            Transaction tmp = samples.get(txid);
-            accountTextField.setText(tmp.getAccount());
-            ownerTextField.setText(tmp.getOwner());
-            amountTextField.setText(df2.format(tmp.getAmountDue()));
-            transferTextField.setText(df2.format(tmp.getAmountTransfer()));
-            selectedId = tmp.getId();
+            currentTx = samples.get(txid);
+            accountTextField.setText(currentTx.getAccount());
+            ownerTextField.setText(currentTx.getOwner());
+            amountTextField.setText(df2.format(currentTx.getAmountDue()));
+            transferTextField.setText(df2.format(currentTx.getAmountTransfer()));
+            selectedId = currentTx.getId();
             isTxShown = true;
 
             return true;
@@ -210,23 +212,24 @@ public class GUIClass extends javax.swing.JFrame {
                     GUIClass.count++;
                     DefaultTableModel model = (DefaultTableModel) txTable.getModel();
                     model.setRowCount(0);
-                    Transaction val;
-                    int j = 0;
+                    List<Integer> keys = new ArrayList<>(samples.keySet());
+                    Collections.shuffle(keys);
                     tmpData = new ArrayList<>();
-                    for (Map.Entry<Integer, Transaction> entry : samples.entrySet()) {
+                    /*for (Map.Entry<Integer, Transaction> entry : samples.entrySet()) {
                         val = entry.getValue();
                         tmpData.add(entry.getKey());
                         model.insertRow(j++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
                         if (j >= GUIClass.numberOfTx[GUIClass.count]) {
                             break;
                         }
-                    }
-
-                    /*Collections.shuffle(samples);
-                    for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
-                        tmpData.add(samples.get(j));
-                        model.insertRow(j, new Object[]{samples.get(j).getId(), samples.get(j).getType(), samples.get(j).getBank(), samples.get(j).getAccount()});
                     }*/
+
+                    //Collections.shuffle(samples);
+                    for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
+                        int idx = keys.get(j);
+                        tmpData.add(idx);
+                        model.insertRow(j, new Object[]{samples.get(idx).getId(), samples.get(idx).getType(), samples.get(idx).getBank(), samples.get(idx).getAccount()});
+                    }
                 }
             };
         }
@@ -294,7 +297,13 @@ public class GUIClass extends javax.swing.JFrame {
         }
     }
 
-    public void saveResult() {
+    public void saveResult(boolean confirm) {
+        String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
+        String event = confirm ? "Confirm" : "Report";
+        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+        String amountDue = df2.format(currentTx.getAmountDue());
+        String transfer = df2.format(currentTx.getAmountTransfer());
+        
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
         try {
@@ -318,26 +327,24 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append("Result");
                 sb.append('\n');
             } else {
-                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_cursor.csv", true));
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
             }
-            for (Point p : cursorLocations) {
-                sb.append("Timestamp");
-                sb.append(',');
-                sb.append("Transaction ID");
-                sb.append(',');
-                sb.append("Bank account");
-                sb.append(',');
-                sb.append("Bank account transaction");
-                sb.append(',');
-                sb.append("Amount due");
-                sb.append(',');
-                sb.append("Amount transferred");
-                sb.append(',');
-                sb.append("Event");
-                sb.append(',');
-                sb.append("Result");
-                sb.append('\n');
-            }
+            sb.append(timestamp);
+            sb.append(',');
+            sb.append(currentTx.getId());
+            sb.append(',');
+            sb.append(currentTx.getAccount());
+            sb.append(',');
+            sb.append(currentTx.getAccount());
+            sb.append(',');
+            sb.append("\"" + amountDue + "\"");
+            sb.append(',');
+            sb.append("\"" + transfer + "\"");
+            sb.append(',');
+            sb.append(event);
+            sb.append(',');
+            sb.append(result);
+            sb.append('\n');
             pw.write(sb.toString());
             pw.close();
         } catch (IOException e) {
@@ -759,7 +766,7 @@ public class GUIClass extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
-        // TODO add your handling code here:
+        // TODO add your handling code here:   
         addCursorLocation("Confirm_button");
 
         if (dataCheckingStage == 0) {
@@ -767,6 +774,7 @@ public class GUIClass extends javax.swing.JFrame {
             return;
         }
         if (isTxShown) {
+            saveResult(true);
             clearStaffPage();
             card.show(mainPanel, "staffPanel");
         } else {
@@ -783,12 +791,13 @@ public class GUIClass extends javax.swing.JFrame {
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
         // TODO add your handling code here:
         addCursorLocation("Report_button");
-
+        
         if (dataCheckingStage == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
             return;
         }
         if (isTxShown) {
+            saveResult(false);
             clearStaffPage();
             card.show(mainPanel, "staffPanel");
         } else {
@@ -810,20 +819,14 @@ public class GUIClass extends javax.swing.JFrame {
                 }
             }*/
             tmpData.remove((Integer) selectedId);
-            for (int x : tmpData) {
-                System.out.print(" " + x);
+            samples.remove(selectedId);
+            //List<Transaction> valuesList = new ArrayList<>(samples.values());
+            List<Integer> keys = new ArrayList<>(samples.keySet());
+            int randIdx = new Random().nextInt(keys.size());
+            while (isDuplicate(keys.get(randIdx))) {
+                randIdx = new Random().nextInt(keys.size());
             }
-            System.out.println("");
-            List<Transaction> valuesList = new ArrayList<>(samples.values());
-            int randIdx = new Random().nextInt(valuesList.size());
-            while (isDuplicate(randIdx)) {
-                randIdx = new Random().nextInt(valuesList.size());
-            }
-            tmpData.add(valuesList.get(randIdx).getId());
-            for (int x : tmpData) {
-                System.out.print(" " + x);
-            }
-            System.out.println("");
+            tmpData.add(keys.get(randIdx));
             //corrected++;
             //setTableData(numberOfTx[GUIClass.count] - corrected);
             setTableData(numberOfTx[GUIClass.count]);
@@ -896,6 +899,7 @@ public class GUIClass extends javax.swing.JFrame {
 
                     for (int i = 0; i < actions.length; i++) {
                         timer = new Timer(900000 * i, actions[i]);
+                        //timer = new Timer(30000 * i, actions[i]);
                         timer.setRepeats(false);
                         timer.start();
                     }
@@ -915,7 +919,6 @@ public class GUIClass extends javax.swing.JFrame {
             executor.shutdownNow();
 
             dataCheckingStage = 0;
-            corrected = 0;
             selectedId = -1;
             setTableData();
         }
