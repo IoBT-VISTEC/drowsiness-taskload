@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 /**
  *
- * @author guygu
+ * @author guy
  */
 public class StaffAccount {
     HashMap<String, char[]> accounts;

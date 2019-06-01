@@ -6,7 +6,7 @@
 package DrowsinessApp;
 /**
  *
- * @author guygu
+ * @author guy
  */
 class Point {
     private int x;

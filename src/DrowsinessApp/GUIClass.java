@@ -9,8 +9,6 @@ import java.awt.CardLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -41,29 +39,23 @@ import javax.swing.table.TableColumnModel;
  */
 public class GUIClass extends javax.swing.JFrame {
 
-    private static CardLayout card;
-    private static HashMap<Integer, Transaction> samples;
-    private static StaffAccount staff;
-    //private static ActionListener[] actions;
-    //private static Timer timer;
-    private List<Point> cursorLocations;
-    private List<KeyClass> keysPressed;
-    private List<Integer> tmpData;
-    private List<Integer> stackData;
-    private String fileName;
-    //private static final int[] numberOfTx = {15, 13, 11, 9, 7, 5, 3, 2};
-    public static int count = -1;
-    private boolean isTxShown = false;
-    private int selectedId;
-    private int dataCheckingStage;
-    private Timer coreTime;
-    private Runnable collectCursor;
-    private Runnable refreshData;
-    private ScheduledExecutorService executor;
-    private DecimalFormat df2 = new DecimalFormat("#,###.##");
-    private int staffID;
-    private Transaction currentTx;
-    private Timer randomTime;
+    private static CardLayout card;                                 //for swapping the pages
+    private static HashMap<Integer, Transaction> transactionSet;    //store all transactions
+    private static StaffAccount staff;                              //all staff accounts
+    private List<Point> cursorLocations;                            //list of cursor's location (Point x, y)
+    private List<KeyClass> keysPressed;                             //list of KeyClass
+    private List<Integer> showingData;                              //indexes of transactions that showing on the table
+    private List<Integer> stackData;                                //list of transactions that will be fetched when clicking update
+    private String fileName;                                        //file name
+    private boolean isTxShown = false;                              //status of transaction detail page
+    //private int selectedId;                                         //currently searching id                       
+    private int dataCheckingStage;                                  //for swapping between start and stop buttons
+    private Timer coreTime;                                         //timer for saving cursor and key pressed
+    private Runnable collectCursor;                                 //collect the cursor 
+    private Runnable refreshData;                                   //automatically refresh data every 15 mins
+    private ScheduledExecutorService executor;                      //for running the collectCursor and refreshData
+    private DecimalFormat numberFormat = new DecimalFormat("#,###.##"); //format for printing number (1,234.56)
+    private Transaction currentTx;                                  //currently search transaction                               
 
     /**
      * Creates new form GUIClass
@@ -74,12 +66,12 @@ public class GUIClass extends javax.swing.JFrame {
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
-        //initActions();
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
         dataCheckingStage = 0;
         stackData = new ArrayList<>();
 
+        //collect key pressed
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
                     @Override
@@ -91,14 +83,15 @@ public class GUIClass extends javax.swing.JFrame {
                     }
                 });
 
+        //collect the cursor's location
         collectCursor = new Runnable() {
-
             @Override
             public void run() {
                 addCursorLocation("");
             }
         };
 
+        //refresh showing table every 15 mins
         refreshData = new Runnable() {
             @Override
             public void run() {
@@ -108,31 +101,34 @@ public class GUIClass extends javax.swing.JFrame {
 
     }
 
+    //show all transactions to table (default)
     public void setTableData() {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         int i = 0;
-        List<Transaction> vals = new ArrayList<>(samples.values());
+        List<Transaction> vals = new ArrayList<>(transactionSet.values());
         Collections.shuffle(vals);
         for (Transaction val : vals) {
             model.insertRow(i++, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
     }
 
+    //show transactions with the number of transactions
     public void setTableData(int num) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
-        List<Integer> keys = new ArrayList<>(samples.keySet());
+        List<Integer> keys = new ArrayList<>(transactionSet.keySet());
         Collections.shuffle(keys);
         Transaction val;
-        tmpData = new ArrayList<>();
+        showingData = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            tmpData.add(keys.get(i));
-            val = samples.get(keys.get(i));
+            showingData.add(keys.get(i));
+            val = transactionSet.get(keys.get(i));
             model.insertRow(i, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
     }
 
+    //append the data from the stackData to the table
     public void autoSetTable(boolean update) {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
@@ -140,16 +136,17 @@ public class GUIClass extends javax.swing.JFrame {
         Transaction tmp;
         if (update) {
             for (Integer idx : stackData) {
-                tmpData.add(idx);
+                showingData.add(idx);
             }
             stackData = new ArrayList<>();
         }
-        for (Integer idx : tmpData) {
-            tmp = samples.get(idx);
+        for (Integer idx : showingData) {
+            tmp = transactionSet.get(idx);
             model.insertRow(i++, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
         }
     }
 
+    //set the column name
     public void setTableHeader() {
         Object[] columnNames = {"Transaction ID", "Type", "Bank", "Bank Account"};
         txTable.getTableHeader().setResizingAllowed(false);
@@ -161,8 +158,9 @@ public class GUIClass extends javax.swing.JFrame {
         th.repaint();
     }
 
+    //check for the duplicate of transaction idx in the showing table
     public boolean isDuplicate(int num) {
-        for (int idx : tmpData) {
+        for (int idx : showingData) {
             if (idx == num) {
                 return true;
             }
@@ -170,14 +168,15 @@ public class GUIClass extends javax.swing.JFrame {
         return false;
     }
 
+    //check if the transaction id exists
     public boolean isTxidCorrect(int txid) {
-        if (isDuplicate(txid) && samples.get(txid) != null) {
-            currentTx = samples.get(txid);
+        if (isDuplicate(txid) && transactionSet.get(txid) != null) {
+            currentTx = transactionSet.get(txid);
             accountTextField.setText(currentTx.getAccount());
             ownerTextField.setText(currentTx.getOwner());
-            amountTextField.setText(df2.format(currentTx.getAmountDue()));
-            transferTextField.setText(df2.format(currentTx.getAmountTransfer()));
-            selectedId = currentTx.getId();
+            amountTextField.setText(numberFormat.format(currentTx.getAmountDue()));
+            transferTextField.setText(numberFormat.format(currentTx.getAmountTransfer()));
+            //selectedId = currentTx.getId();
             isTxShown = true;
 
             return true;
@@ -185,12 +184,14 @@ public class GUIClass extends javax.swing.JFrame {
         return false;
     }
 
+    //add the cursor location
     public void addCursorLocation(String event) {
         java.awt.Point p = MouseInfo.getPointerInfo().getLocation();
         String tmp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
         cursorLocations.add(new Point((int) p.getX(), (int) p.getY(), tmp, event));
     }
 
+    //clear all the textfields in transaction page
     public void clearTransactionPage() {
         accountTextField.setText("");
         ownerTextField.setText("");
@@ -199,32 +200,13 @@ public class GUIClass extends javax.swing.JFrame {
         enterTxidTextField.setText("");
     }
 
+    //clear all the textfiles in staff page
     public void clearStaffPage() {
         staffIdTextField.setText("");
         staffPwdField.setText("");
     }
 
-    /*public void initActions() {
-        actions = new ActionListener[numberOfTx.length];
-        for (int i = 0; i < actions.length; i++) {
-            actions[i] = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    GUIClass.count++;
-                    DefaultTableModel model = (DefaultTableModel) txTable.getModel();
-                    model.setRowCount(0);
-                    List<Integer> keys = new ArrayList<>(samples.keySet());
-                    Collections.shuffle(keys);
-                    tmpData = new ArrayList<>();
-                    for (int j = 0; j < GUIClass.numberOfTx[GUIClass.count]; j++) {
-                        int idx = keys.get(j);
-                        tmpData.add(idx);
-                        model.insertRow(j, new Object[]{samples.get(idx).getId(), samples.get(idx).getType(), samples.get(idx).getBank(), samples.get(idx).getAccount()});
-                    }
-                }
-            };
-        }
-    }*/
+    //save the all key pressed to the file
     public void saveKeyPressed() {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -252,6 +234,7 @@ public class GUIClass extends javax.swing.JFrame {
         }
     }
 
+    //save all the collected cursor to the file
     public void saveCursorLocation() {
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -287,12 +270,13 @@ public class GUIClass extends javax.swing.JFrame {
         }
     }
 
+    //save the result of confirmation
     public void saveResult(boolean confirm) {
         String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
         String event = confirm ? "Confirm" : "Report";
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-        String amountDue = df2.format(currentTx.getAmountDue());
-        String transfer = df2.format(currentTx.getAmountTransfer());
+        String amountDue = numberFormat.format(currentTx.getAmountDue());
+        String transfer = numberFormat.format(currentTx.getAmountTransfer());
 
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -754,16 +738,16 @@ public class GUIClass extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+   
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
         // TODO add your handling code here:   
         addCursorLocation("Confirm_button");
 
-        if (dataCheckingStage == 0) {
+        if (dataCheckingStage == 0) {   //if user doesn't click start button yet
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
             return;
         }
-        if (isTxShown) {
+        if (isTxShown) {                //make sure there is a transactions that is showing
             saveResult(true);
             clearStaffPage();
             card.show(mainPanel, "staffPanel");
@@ -794,24 +778,16 @@ public class GUIClass extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
         }
     }//GEN-LAST:event_reportButtonActionPerformed
-
+    
     private void confirm2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirm2ButtonActionPerformed
-        // TODO add your handling code here:
+        //check for empty username and password
         if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
-        } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {
-            tmpData.remove((Integer) selectedId);
-            samples.remove(selectedId);
-            autoSetTable(false);
-            /*List<Integer> keys = new ArrayList<>(samples.keySet());
-            int randIdx = new Random().nextInt(keys.size());
-            while (isDuplicate(keys.get(randIdx))) {
-                randIdx = new Random().nextInt(keys.size());
-            }
-            tmpData.add(keys.get(randIdx));*/
-            //corrected++;
-            //setTableData(numberOfTx[GUIClass.count] - corrected);
-            //setTableData(numberOfTx[GUIClass.count]);
+        } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
+            //showingData.remove((Integer) selectedId);
+            showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
+            transactionSet.remove(currentTx.getId());                           //also from the transaction set
+            autoSetTable(false);                                                
             card.show(mainPanel, "txPanel");
             enterTxidTextField.setText("");
             isTxShown = false;
@@ -860,12 +836,13 @@ public class GUIClass extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(rootPane, "Please enter Staff no.!", "Error", ERROR_MESSAGE);
             } else {
                 try {
-                    staffID = Integer.parseInt(staffNoField.getText());
+                    int staffID = Integer.parseInt(staffNoField.getText());
                     startButton.setText("Stop data checking");
                     String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
                     fileName = startTime.substring(0, 4) + startTime.substring(5, 7) + startTime.substring(8, 10) + "_" + staffID;
                     dataCheckingStage = 1;
                     setTableData(15);
+                    
                     coreTime = new java.util.Timer();
                     coreTime.schedule(new TimerTask() {
                         @Override
@@ -876,17 +853,18 @@ public class GUIClass extends javax.swing.JFrame {
                             keysPressed = new ArrayList<>();
                         }
                     }, 1000, 1000);
-                    randomTime = new Timer();
+                    
+                    Timer randomTime = new Timer();
+                    
                     randomTime.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            List<Integer> keys = new ArrayList<>(samples.keySet());
+                            List<Integer> keys = new ArrayList<>(transactionSet.keySet());
                             int randIdx = new Random().nextInt(keys.size());
                             while (isDuplicate(keys.get(randIdx))) {
                                 randIdx = new Random().nextInt(keys.size());
                             }
                             stackData.add(keys.get(randIdx));
-                            System.out.println(keys.get(randIdx));
                         }
                     }, (15 + new Random().nextInt(16)) * 1000, (15 + new Random().nextInt(16)) * 1000);
                     executor = Executors.newScheduledThreadPool(2);
@@ -902,13 +880,12 @@ public class GUIClass extends javax.swing.JFrame {
         } else if (dataCheckingStage == 1) {
             startButton.setText("Start data checking");
 
-            GUIClass.count = 0;
-            //timer.stop();
             coreTime.cancel();
             executor.shutdownNow();
 
             dataCheckingStage = 0;
-            selectedId = -1;
+            //selectedId = -1;
+            currentTx = null;
             setTableData();
         }
 
@@ -959,10 +936,10 @@ public class GUIClass extends javax.swing.JFrame {
         staff.addAccount("sky", "skypwd");
 
         int txID;
-        samples = new HashMap<>();
-        samples.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
-        samples.put(1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
-        samples.put(1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
+        transactionSet = new HashMap<>();
+        transactionSet.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
+        transactionSet.put(1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
+        transactionSet.put(1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
         for (int i = 0; i < 300; i++) {
             String type, bank;
             if (i % 5 == 0) {
@@ -987,7 +964,7 @@ public class GUIClass extends javax.swing.JFrame {
                 transfer = 0;
             }
             txID = 1137 + i;
-            samples.put(txID, new Transaction(txID, type, bank, startId + (3 * i) + "", "Dummy " + i, amount, amount - transfer));
+            transactionSet.put(txID, new Transaction(txID, type, bank, startId + (3 * i) + "", "Dummy " + i, amount, amount - transfer));
 
         }
 

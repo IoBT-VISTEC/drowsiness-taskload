@@ -5,8 +5,6 @@
  */
 package DrowsinessApp;
 
-import java.text.DecimalFormat;
-
 /**
  *
  * @author guygu
