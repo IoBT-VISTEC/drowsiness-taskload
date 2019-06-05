@@ -32,6 +32,8 @@ import java.util.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
+import javax.swing.*;
+import java.awt.event.*;
 
 /**
  *
@@ -837,6 +839,7 @@ public class GUIClass extends javax.swing.JFrame {
             } else {
                 try {
                     int staffID = Integer.parseInt(staffNoField.getText());
+                    GUIClass.staffID = staffID;
                     startButton.setText("Stop data checking");
                     String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
                     fileName = startTime.substring(0, 4) + startTime.substring(5, 7) + startTime.substring(8, 10) + "_" + staffID;
@@ -903,6 +906,7 @@ public class GUIClass extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
+    public static int staffID = 0;
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -974,6 +978,14 @@ public class GUIClass extends javax.swing.JFrame {
                 new GUIClass().setVisible(true);
             }
         });
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new Questionnaire().setVisible(true);
+            }
+        });
+        
+
+        // ************** END POPUP
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
