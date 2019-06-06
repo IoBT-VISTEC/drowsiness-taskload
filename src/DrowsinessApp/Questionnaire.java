@@ -270,6 +270,7 @@ public class Questionnaire extends javax.swing.JFrame {
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
         // TODO add your handling code here:
         saveAnswer();
+        this.setVisible(false);
     }//GEN-LAST:event_confirmButtonActionPerformed
 
     /**
@@ -330,15 +331,15 @@ public class Questionnaire extends javax.swing.JFrame {
                 String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
                 sb.append(timestamp);
                 sb.append(',');
-                sb.append("1");
+                sb.append(jSlider1.getValue());
                 sb.append(',');
-                sb.append("1");
+                sb.append(jSlider2.getValue());
                 sb.append(',');
-                sb.append("1");
+                sb.append(jSlider3.getValue());
                 sb.append(',');
-                sb.append("1");
+                sb.append(jSlider4.getValue());
                 sb.append(',');
-                sb.append("1");
+                sb.append(jSlider5.getValue());
                 sb.append('\n');
             System.out.println("saveAnswer");
             pw.write(sb.toString());

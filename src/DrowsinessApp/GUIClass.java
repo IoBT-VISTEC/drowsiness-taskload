@@ -53,12 +53,13 @@ public class GUIClass extends javax.swing.JFrame {
     //private int selectedId;                                         //currently searching id                       
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
     private Timer coreTime;                                         //timer for saving cursor and key pressed
+    private Timer questionnaireTime;
     private Runnable collectCursor;                                 //collect the cursor 
     private Runnable refreshData;                                   //automatically refresh data every 15 mins
     private ScheduledExecutorService executor;                      //for running the collectCursor and refreshData
     private DecimalFormat numberFormat = new DecimalFormat("#,###.##"); //format for printing number (1,234.56)
     private Transaction currentTx;                                  //currently search transaction                               
-
+    private Questionnaire questionPanel;
     /**
      * Creates new form GUIClass
      */
@@ -101,6 +102,7 @@ public class GUIClass extends javax.swing.JFrame {
             }
         };
 
+        questionPanel = new Questionnaire();
     }
 
     //show all transactions to table (default)
@@ -857,6 +859,14 @@ public class GUIClass extends javax.swing.JFrame {
                         }
                     }, 1000, 1000);
                     
+                    questionnaireTime = new java.util.Timer();
+                    questionnaireTime.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            questionPanel.setVisible(true);
+                        }
+                    }, 5000, 60000);
+                    
                     Timer randomTime = new Timer();
                     
                     randomTime.schedule(new TimerTask() {
@@ -884,6 +894,7 @@ public class GUIClass extends javax.swing.JFrame {
             startButton.setText("Start data checking");
 
             coreTime.cancel();
+            questionnaireTime.cancel();
             executor.shutdownNow();
 
             dataCheckingStage = 0;
@@ -978,13 +989,6 @@ public class GUIClass extends javax.swing.JFrame {
                 new GUIClass().setVisible(true);
             }
         });
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Questionnaire().setVisible(true);
-            }
-        });
-        
-
         // ************** END POPUP
     }
 
