@@ -34,6 +34,10 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.*;
 import java.awt.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -103,7 +107,44 @@ public class GUIClass extends javax.swing.JFrame {
         };
 
         questionPanel = new Questionnaire();
+        
+        DocumentListener dl = new DocumentListener() {
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateFieldState();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateFieldState();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateFieldState();
+            }
+
+            protected void updateFieldState() {
+                try {
+                    jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+
+        };
+
+        jTextField1.getDocument().addDocumentListener(dl);
+
+        jSlider1.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent event) {
+                jTextField1.setText(String.valueOf(jSlider1.getValue()));
+            }
+        });
     }
+
+    
 
     //show all transactions to table (default)
     public void setTableData() {
@@ -300,6 +341,8 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append(',');
                 sb.append("Amount transferred");
                 sb.append(',');
+                sb.append("Confidential level");
+                sb.append(',');
                 sb.append("Event");
                 sb.append(',');
                 sb.append("Result");
@@ -318,6 +361,8 @@ public class GUIClass extends javax.swing.JFrame {
             sb.append("\"" + amountDue + "\"");
             sb.append(',');
             sb.append("\"" + transfer + "\"");
+            sb.append(',');
+            sb.append(jSlider1.getValue());
             sb.append(',');
             sb.append(event);
             sb.append(',');
@@ -371,6 +416,11 @@ public class GUIClass extends javax.swing.JFrame {
         confirm2Button = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         staffPwdField = new javax.swing.JPasswordField();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jSlider1 = new javax.swing.JSlider();
+        jLabel2 = new javax.swing.JLabel();
+        staffPwdLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Drowsiness Application");
@@ -682,6 +732,21 @@ public class GUIClass extends javax.swing.JFrame {
             }
         });
 
+        jTextField1.setText("5");
+
+        jLabel4.setText("Extremely");
+
+        jSlider1.setMaximum(10);
+        jSlider1.setPaintLabels(true);
+        jSlider1.setPaintTicks(true);
+        jSlider1.setSnapToTicks(true);
+        jSlider1.setValue(5);
+
+        jLabel2.setText("Not at all");
+
+        staffPwdLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        staffPwdLabel1.setText("Confidential Level");
+
         javax.swing.GroupLayout staffPanelLayout = new javax.swing.GroupLayout(staffPanel);
         staffPanel.setLayout(staffPanelLayout);
         staffPanelLayout.setHorizontalGroup(
@@ -690,20 +755,37 @@ public class GUIClass extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(staffIdLabel)
                 .addGap(266, 266, 266))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(staffPwdLabel)
-                .addGap(239, 239, 239))
             .addGroup(staffPanelLayout.createSequentialGroup()
                 .addGap(201, 201, 201)
-                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(staffPwdField)
-                    .addComponent(staffIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(staffPanelLayout.createSequentialGroup()
+                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(staffPwdField, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(staffIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                .addContainerGap(151, Short.MAX_VALUE)
+                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                        .addComponent(staffPwdLabel)
+                        .addGap(239, 239, 239))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
                         .addComponent(confirm2Button)
                         .addGap(18, 18, 18)
-                        .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(194, Short.MAX_VALUE))
+                        .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(192, 192, 192))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                        .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                                .addComponent(staffPwdLabel1)
+                                .addGap(127, 127, 127))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, staffPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4)
+                                .addGap(18, 18, 18)
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(98, 98, 98))))
         );
         staffPanelLayout.setVerticalGroup(
             staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -716,11 +798,20 @@ public class GUIClass extends javax.swing.JFrame {
                 .addComponent(staffPwdLabel)
                 .addGap(18, 18, 18)
                 .addComponent(staffPwdField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(46, 46, 46)
+                .addGap(18, 18, 18)
+                .addComponent(staffPwdLabel1)
+                .addGap(18, 18, 18)
+                .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(13, 13, 13)
                 .addGroup(staffPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(confirm2Button)
                     .addComponent(cancelButton))
-                .addContainerGap(170, Short.MAX_VALUE))
+                .addContainerGap(114, Short.MAX_VALUE))
         );
 
         mainPanel.add(staffPanel, "staffPanel");
@@ -1005,6 +1096,10 @@ public class GUIClass extends javax.swing.JFrame {
     private javax.swing.JLabel enterTxIdLabel;
     private javax.swing.JTextField enterTxidTextField;
     private javax.swing.JButton go2Button;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JSlider jSlider1;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JLabel ownerLabel;
     private javax.swing.JTextField ownerTextField;
@@ -1017,6 +1112,7 @@ public class GUIClass extends javax.swing.JFrame {
     private javax.swing.JPanel staffPanel;
     private javax.swing.JPasswordField staffPwdField;
     private javax.swing.JLabel staffPwdLabel;
+    private javax.swing.JLabel staffPwdLabel1;
     private javax.swing.JButton startButton;
     private javax.swing.JScrollPane tableScroll;
     private javax.swing.JLabel transferLabel;
