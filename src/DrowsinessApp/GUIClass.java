@@ -865,7 +865,7 @@ public class GUIClass extends javax.swing.JFrame {
                         public void run() {
                             questionPanel.setVisible(true);
                         }
-                    }, 5000, 60000);
+                    }, 5000, 300000);
                     
                     Timer randomTime = new Timer();
                     
