@@ -54,6 +54,7 @@ public class GUIClass extends javax.swing.JFrame {
     private List<Integer> stackData;                                //list of transactions that will be fetched when clicking update
     private String fileName;                                        //file name
     private boolean isTxShown = false;                              //status of transaction detail page
+    private boolean isTimeLimit = false;                              //status of transaction detail page
     //private int selectedId;                                         //currently searching id                       
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
     private Timer coreTime;                                         //timer for saving cursor and key pressed
@@ -77,14 +78,46 @@ public class GUIClass extends javax.swing.JFrame {
         keysPressed = new ArrayList<>();
         dataCheckingStage = 0;
         stackData = new ArrayList<>();
-
+        
         //collect key pressed
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
                     @Override
                     public boolean dispatchKeyEvent(KeyEvent e) {
-                        if (e.getID() == KeyEvent.KEY_PRESSED) {
-                            keysPressed.add(new KeyClass(e.getKeyChar(), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Backspace detected");
+                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DELETE && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Delete");
+                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_UP && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Up");
+                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DOWN && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Down");
+                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_LEFT && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Left");
+                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_RIGHT && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Right");
+                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_TAB && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Tab");
+                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED){
+                            System.out.println("Enter");
+                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
+                        }
+                        else if (e.getID() == KeyEvent.KEY_PRESSED ) {
+                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
                         }
                         return false;
                     }
@@ -139,6 +172,7 @@ public class GUIClass extends javax.swing.JFrame {
 
         jSlider1.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent event) {
+                addCursorLocation("Confident_Slider_" + String.valueOf(jSlider1.getValue()));
                 jTextField1.setText(String.valueOf(jSlider1.getValue()));
             }
         });
@@ -322,6 +356,8 @@ public class GUIClass extends javax.swing.JFrame {
         String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
         String amountDue = numberFormat.format(currentTx.getAmountDue());
         String transfer = numberFormat.format(currentTx.getAmountTransfer());
+        if(isTimeLimit == true) result = "TIME_LIMIT";
+        isTimeLimit = false;
 
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -372,7 +408,8 @@ public class GUIClass extends javax.swing.JFrame {
             pw.close();
         } catch (IOException e) {
             System.out.println(e);
-        }
+        }              
+        jSlider1.setValue(5);
     }
 
     /**
@@ -392,6 +429,8 @@ public class GUIClass extends javax.swing.JFrame {
         tableScroll = new javax.swing.JScrollPane();
         txTable = new javax.swing.JTable();
         companyLabel = new javax.swing.JLabel();
+        staffNoLabel1 = new javax.swing.JLabel();
+        timeLimitField = new javax.swing.JTextField();
         mainPanel = new javax.swing.JPanel();
         txPanel = new javax.swing.JPanel();
         enterTxIdLabel = new javax.swing.JLabel();
@@ -468,6 +507,12 @@ public class GUIClass extends javax.swing.JFrame {
         companyLabel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         companyLabel.setOpaque(true);
 
+        staffNoLabel1.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        staffNoLabel1.setText("Time Limit");
+
+        timeLimitField.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+        timeLimitField.setText("30");
+
         javax.swing.GroupLayout companyPanelLayout = new javax.swing.GroupLayout(companyPanel);
         companyPanel.setLayout(companyPanelLayout);
         companyPanelLayout.setHorizontalGroup(
@@ -480,13 +525,18 @@ public class GUIClass extends javax.swing.JFrame {
                         .addComponent(companyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(refreshButton)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, companyPanelLayout.createSequentialGroup()
+                                .addComponent(staffNoLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(timeLimitField, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(companyPanelLayout.createSequentialGroup()
                                 .addComponent(staffNoLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(startButton, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(startButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(refreshButton, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addGap(29, 29, 29))
         );
         companyPanelLayout.setVerticalGroup(
@@ -500,7 +550,11 @@ public class GUIClass extends javax.swing.JFrame {
                             .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(startButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(refreshButton))
+                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(refreshButton)
+                            .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(staffNoLabel1)
+                                .addComponent(timeLimitField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addComponent(companyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(tableScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -922,6 +976,27 @@ public class GUIClass extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Error", ERROR_MESSAGE);
             }
         }
+        ScheduledExecutorService scheduler
+                            = Executors.newSingleThreadScheduledExecutor();
+        Runnable task = new Runnable() {
+            public void run() {
+                showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
+                transactionSet.remove(currentTx.getId());                           //also from the transaction set
+                autoSetTable(false);                                                
+                card.show(mainPanel, "txPanel");
+                enterTxidTextField.setText("");
+                isTxShown = false;
+                clearStaffPage();
+                clearTransactionPage();
+                JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
+                isTimeLimit = true;
+                saveResult(true);
+            }
+        };
+ 
+        int delay = Integer.parseInt(timeLimitField.getText());
+        scheduler.schedule(task, delay, TimeUnit.SECONDS);
+        scheduler.shutdown();
     }//GEN-LAST:event_go2ButtonActionPerformed
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
@@ -956,7 +1031,7 @@ public class GUIClass extends javax.swing.JFrame {
                         public void run() {
                             questionPanel.setVisible(true);
                         }
-                    }, 100, 300000);
+                    }, 100, 3 * 60 * 1000);
                     
                     Timer randomTime = new Timer();
                     
@@ -1109,12 +1184,14 @@ public class GUIClass extends javax.swing.JFrame {
     private javax.swing.JTextField staffIdTextField;
     private javax.swing.JTextField staffNoField;
     private javax.swing.JLabel staffNoLabel;
+    private javax.swing.JLabel staffNoLabel1;
     private javax.swing.JPanel staffPanel;
     private javax.swing.JPasswordField staffPwdField;
     private javax.swing.JLabel staffPwdLabel;
     private javax.swing.JLabel staffPwdLabel1;
     private javax.swing.JButton startButton;
     private javax.swing.JScrollPane tableScroll;
+    private javax.swing.JTextField timeLimitField;
     private javax.swing.JLabel transferLabel;
     private javax.swing.JTextField transferTextField;
     private javax.swing.JPanel txDetailPanel;

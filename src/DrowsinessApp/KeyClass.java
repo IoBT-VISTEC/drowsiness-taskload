@@ -10,19 +10,19 @@ package DrowsinessApp;
  * @author guygu
  */
 class KeyClass {
-    private char key;
+    private String key;
     private String timePoint;
 
-    public KeyClass(char key, String timePoint) {
+    public KeyClass(String key, String timePoint) {
         this.key = key;
         this.timePoint = timePoint;
     }
 
-    public char getKey() {
+    public String getKey() {
         return key;
     }
 
-    public void setKey(char key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
