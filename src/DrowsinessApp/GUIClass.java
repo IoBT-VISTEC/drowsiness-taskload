@@ -55,7 +55,7 @@ public class GUIClass extends javax.swing.JFrame {
     private String fileName;                                        //file name
     private boolean isTxShown = false;                              //status of transaction detail page
     private boolean isTimeLimit = false;   
-    private boolean isFinishTask = false;
+    private boolean isStartTask = false;
     private boolean confirm = false;
     //private int selectedId;                                         //currently searching id                       
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
@@ -886,6 +886,7 @@ public class GUIClass extends javax.swing.JFrame {
         if(isTimeLimit) result = "TIME_LIMIT";
         isTimeLimit = false;
         taskTimer.shutdownNow();
+        isStartTask = false;
 
         PrintWriter pw;
         StringBuilder sb = new StringBuilder();
@@ -980,90 +981,100 @@ public class GUIClass extends javax.swing.JFrame {
                 if (!isTxidCorrect(number)) {
                     JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found!", "Error", ERROR_MESSAGE);
                 }
+                else{
+                    int delay = Integer.parseInt(timeLimitField.getText());
+                    Runnable task = new Runnable() {
+                        @Override
+                        public void run() {
+                            isTimeLimit = true;
+                            String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
+                            String event = confirm ? "Confirm" : "Report";
+                            String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                            String amountDue = numberFormat.format(currentTx.getAmountDue());
+                            String transfer = numberFormat.format(currentTx.getAmountTransfer());
+                            if(isTimeLimit) result = "TIME_LIMIT";
+                            isTimeLimit = false;
+                            taskTimer.shutdownNow();
+                            PrintWriter pw;
+                            StringBuilder sb = new StringBuilder();
+                            try {
+                                File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
+                                if (!f.exists() || f.isDirectory()) {
+                                    pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
+                                    sb.append("Timestamp");
+                                    sb.append(',');
+                                    sb.append("Transaction ID");
+                                    sb.append(',');
+                                    sb.append("Bank account");
+                                    sb.append(',');
+                                    sb.append("Bank account transaction");
+                                    sb.append(',');
+                                    sb.append("Amount due");
+                                    sb.append(',');
+                                    sb.append("Amount transferred");
+                                    sb.append(',');
+                                    sb.append("Confidential level");
+                                    sb.append(',');
+                                    sb.append("Event");
+                                    sb.append(',');
+                                    sb.append("Result");
+                                    sb.append('\n');
+                                } else {
+                                    pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
+                                }
+                                sb.append(timestamp);
+                                sb.append(',');
+                                sb.append(currentTx.getId());
+                                sb.append(',');
+                                sb.append(currentTx.getAccount());
+                                sb.append(',');
+                                sb.append(currentTx.getAccount());
+                                sb.append(',');
+                                sb.append("\"" + amountDue + "\"");
+                                sb.append(',');
+                                sb.append("\"" + transfer + "\"");
+                                sb.append(',');
+                                sb.append(jSlider1.getValue());
+                                sb.append(',');
+                                sb.append(event);
+                                sb.append(',');
+                                sb.append(result);
+                                sb.append('\n');
+                                pw.write(sb.toString());
+                                pw.close();
+                            } catch (IOException e) {
+                                System.out.println(e);
+                            }              
+                            jSlider1.setValue(5);
+
+                            showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
+                            transactionSet.remove(currentTx.getId());                           //also from the transaction set
+                            autoSetTable(false);                                                
+                            card.show(mainPanel, "txPanel");
+                            enterTxidTextField.setText("");
+                            isTxShown = false;
+                            clearStaffPage();
+                            clearTransactionPage();
+                            JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
+                            isStartTask = false;
+                        }
+                    };
+                    taskTimer = Executors.newScheduledThreadPool(1);
+                    if(isStartTask){
+                        taskTimer.shutdownNow();
+                        isStartTask = false;
+                    }
+                    else{
+                        taskTimer.schedule(task, delay, TimeUnit.SECONDS);
+                        isStartTask = true;
+                    }
+                }
             } catch (NumberFormatException ne) {
                 JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Error", ERROR_MESSAGE);
             }
+            
         }
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                isTimeLimit = true;
-                String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
-                String event = confirm ? "Confirm" : "Report";
-                String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                String amountDue = numberFormat.format(currentTx.getAmountDue());
-                String transfer = numberFormat.format(currentTx.getAmountTransfer());
-                if(isTimeLimit) result = "TIME_LIMIT";
-                isTimeLimit = false;
-                taskTimer.shutdownNow();
-                PrintWriter pw;
-                StringBuilder sb = new StringBuilder();
-                try {
-                    File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
-                    if (!f.exists() || f.isDirectory()) {
-                        pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
-                        sb.append("Timestamp");
-                        sb.append(',');
-                        sb.append("Transaction ID");
-                        sb.append(',');
-                        sb.append("Bank account");
-                        sb.append(',');
-                        sb.append("Bank account transaction");
-                        sb.append(',');
-                        sb.append("Amount due");
-                        sb.append(',');
-                        sb.append("Amount transferred");
-                        sb.append(',');
-                        sb.append("Confidential level");
-                        sb.append(',');
-                        sb.append("Event");
-                        sb.append(',');
-                        sb.append("Result");
-                        sb.append('\n');
-                    } else {
-                        pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
-                    }
-                    sb.append(timestamp);
-                    sb.append(',');
-                    sb.append(currentTx.getId());
-                    sb.append(',');
-                    sb.append(currentTx.getAccount());
-                    sb.append(',');
-                    sb.append(currentTx.getAccount());
-                    sb.append(',');
-                    sb.append("\"" + amountDue + "\"");
-                    sb.append(',');
-                    sb.append("\"" + transfer + "\"");
-                    sb.append(',');
-                    sb.append(jSlider1.getValue());
-                    sb.append(',');
-                    sb.append(event);
-                    sb.append(',');
-                    sb.append(result);
-                    sb.append('\n');
-                    pw.write(sb.toString());
-                    pw.close();
-                } catch (IOException e) {
-                    System.out.println(e);
-                }              
-                jSlider1.setValue(5);
-                
-                showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
-                transactionSet.remove(currentTx.getId());                           //also from the transaction set
-                autoSetTable(false);                                                
-                card.show(mainPanel, "txPanel");
-                enterTxidTextField.setText("");
-                isTxShown = false;
-                clearStaffPage();
-                clearTransactionPage();
-                JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);                
-                saveResult(true);
-            }
-        };
-        int delay = Integer.parseInt(timeLimitField.getText());
-//        taskTimer.schedule(task, delay, TimeUnit.SECONDS);
-        taskTimer = Executors.newScheduledThreadPool(1);
-        taskTimer.scheduleAtFixedRate(task, delay, delay, TimeUnit.SECONDS);
+      
     }//GEN-LAST:event_go2ButtonActionPerformed
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
