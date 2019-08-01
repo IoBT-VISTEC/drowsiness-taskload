@@ -879,73 +879,70 @@ public class GUIClass extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
             String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
-        String event = confirm ? "Confirm" : "Report";
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-        String amountDue = numberFormat.format(currentTx.getAmountDue());
-        String transfer = numberFormat.format(currentTx.getAmountTransfer());
-        if(isTimeLimit) result = "TIME_LIMIT";
-        isTimeLimit = false;
-        taskTimer.shutdownNow();
-        isStartTask = false;
-
-        PrintWriter pw;
-        StringBuilder sb = new StringBuilder();
-        try {
-            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
-            if (!f.exists() || f.isDirectory()) {
-                pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
-                sb.append("Timestamp");
+            String event = confirm ? "Confirm" : "Report";
+            String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+            String amountDue = numberFormat.format(currentTx.getAmountDue());
+            String transfer = numberFormat.format(currentTx.getAmountTransfer());
+            if(isTimeLimit) result = "TIME_LIMIT";
+            isTimeLimit = false;
+            taskTimer.shutdownNow();
+            isStartTask = false;
+            PrintWriter pw;
+            StringBuilder sb = new StringBuilder();
+            try {
+                File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
+                if (!f.exists() || f.isDirectory()) {
+                    pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
+                    sb.append("Timestamp");
+                    sb.append(',');
+                    sb.append("Transaction ID");
+                    sb.append(',');
+                    sb.append("Bank account");
+                    sb.append(',');
+                    sb.append("Bank account transaction");
+                    sb.append(',');
+                    sb.append("Amount due");
+                    sb.append(',');
+                    sb.append("Amount transferred");
+                    sb.append(',');
+                    sb.append("Confidential level");
+                    sb.append(',');
+                    sb.append("Event");
+                    sb.append(',');
+                    sb.append("Result");
+                    sb.append('\n');
+                } else {
+                    pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
+                }
+                sb.append(timestamp);
                 sb.append(',');
-                sb.append("Transaction ID");
+                sb.append(currentTx.getId());
                 sb.append(',');
-                sb.append("Bank account");
+                sb.append(currentTx.getAccount());
                 sb.append(',');
-                sb.append("Bank account transaction");
+                sb.append(currentTx.getAccount());
                 sb.append(',');
-                sb.append("Amount due");
+                sb.append("\"" + amountDue + "\"");
                 sb.append(',');
-                sb.append("Amount transferred");
+                sb.append("\"" + transfer + "\"");
                 sb.append(',');
-                sb.append("Confidential level");
+                sb.append(jSlider1.getValue());
                 sb.append(',');
-                sb.append("Event");
+                sb.append(event);
                 sb.append(',');
-                sb.append("Result");
+                sb.append(result);
                 sb.append('\n');
-            } else {
-                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
-            }
-            sb.append(timestamp);
-            sb.append(',');
-            sb.append(currentTx.getId());
-            sb.append(',');
-            sb.append(currentTx.getAccount());
-            sb.append(',');
-            sb.append(currentTx.getAccount());
-            sb.append(',');
-            sb.append("\"" + amountDue + "\"");
-            sb.append(',');
-            sb.append("\"" + transfer + "\"");
-            sb.append(',');
-            sb.append(jSlider1.getValue());
-            sb.append(',');
-            sb.append(event);
-            sb.append(',');
-            sb.append(result);
-            sb.append('\n');
-            pw.write(sb.toString());
-            pw.close();
-        } catch (IOException e) {
-            System.out.println(e);
-        }              
-        jSlider1.setValue(5);
-            
-            
+                pw.write(sb.toString());
+                pw.close();
+            } catch (IOException e) {
+                System.out.println(e);
+            }              
+            jSlider1.setValue(5);           
             
             //showingData.remove((Integer) selectedId);
             showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
             transactionSet.remove(currentTx.getId());                           //also from the transaction set
-            autoSetTable(false);                                                
+            autoSetTable(true);                                                
             card.show(mainPanel, "txPanel");
             enterTxidTextField.setText("");
             isTxShown = false;
@@ -1051,7 +1048,7 @@ public class GUIClass extends javax.swing.JFrame {
 
                             showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
                             transactionSet.remove(currentTx.getId());                           //also from the transaction set
-                            autoSetTable(false);                                                
+                            autoSetTable(true);                                                
                             card.show(mainPanel, "txPanel");
                             enterTxidTextField.setText("");
                             isTxShown = false;
