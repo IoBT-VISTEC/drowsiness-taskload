@@ -968,8 +968,7 @@ public class GUIClass extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void go2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_go2ButtonActionPerformed
-        // TODO add your handling code here:
-        go2Button.setEnabled(false);
+        // TODO add your handling code here:        
         addCursorLocation("Go_button");
         if (dataCheckingStage == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
@@ -984,6 +983,7 @@ public class GUIClass extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(rootPane, "Transaction ID is not found!", "Error", ERROR_MESSAGE);
                 }
                 else{
+                    go2Button.setEnabled(false);
                     int delay = Integer.parseInt(timeLimitField.getText());
                     Runnable task = new Runnable() {
                         @Override
