@@ -495,11 +495,11 @@ public class GUIClass extends javax.swing.JFrame {
                             .addComponent(staffNoField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(startButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(refreshButton)
+                        .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(companyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(staffNoLabel1)
-                                .addComponent(timeLimitField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(timeLimitField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(refreshButton)))
                     .addComponent(companyLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(tableScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -951,6 +951,7 @@ public class GUIClass extends javax.swing.JFrame {
             isTxShown = false;
             clearStaffPage();
             clearTransactionPage();
+            go2Button.setEnabled(true);
         } else {
             JOptionPane.showMessageDialog(rootPane, "Username or password is not correct!", "Error", ERROR_MESSAGE);
         }
@@ -968,6 +969,7 @@ public class GUIClass extends javax.swing.JFrame {
 
     private void go2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_go2ButtonActionPerformed
         // TODO add your handling code here:
+        go2Button.setEnabled(false);
         addCursorLocation("Go_button");
         if (dataCheckingStage == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
@@ -1057,6 +1059,7 @@ public class GUIClass extends javax.swing.JFrame {
                             clearTransactionPage();
                             JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
                             isStartTask = false;
+                            go2Button.setEnabled(true);
                         }
                     };
                     taskTimer = Executors.newScheduledThreadPool(1);
@@ -1136,7 +1139,7 @@ public class GUIClass extends javax.swing.JFrame {
             staffNoField.setText("");
         } else if (dataCheckingStage == 1) {
             startButton.setText("Start data checking");
-
+            go2Button.setEnabled(true);
             coreTime.cancel();
             questionnaireTime.cancel();
             executor.shutdownNow();
