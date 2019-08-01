@@ -930,7 +930,7 @@ public class GUIClass extends javax.swing.JFrame {
     
     private void confirm2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirm2ButtonActionPerformed
         //check for empty username and password
-        if (staffIdTextField.getText().isBlank() || staffPwdField.getPassword().length == 0) {
+        if (staffIdTextField.getText().isEmpty() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
             //showingData.remove((Integer) selectedId);
@@ -964,7 +964,7 @@ public class GUIClass extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
             return;
         }
-        if (enterTxidTextField.getText().isBlank()) {
+        if (enterTxidTextField.getText().isEmpty()) {
             JOptionPane.showMessageDialog(rootPane, "Please enter Transaction ID!", "Error", ERROR_MESSAGE);
         } else {
             try {
@@ -1002,7 +1002,7 @@ public class GUIClass extends javax.swing.JFrame {
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         // TODO add your handling code here:
         if (dataCheckingStage == 0) {
-            if (staffNoField.getText().isBlank()) {
+            if (staffNoField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(rootPane, "Please enter Staff no.!", "Error", ERROR_MESSAGE);
             } else {
                 try {
