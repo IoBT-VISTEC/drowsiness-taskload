@@ -54,7 +54,9 @@ public class GUIClass extends javax.swing.JFrame {
     private List<Integer> stackData;                                //list of transactions that will be fetched when clicking update
     private String fileName;                                        //file name
     private boolean isTxShown = false;                              //status of transaction detail page
-    private boolean isTimeLimit = false;                              //status of transaction detail page
+    private boolean isTimeLimit = false;   
+    private boolean isFinishTask = false;
+    private boolean confirm = false;
     //private int selectedId;                                         //currently searching id                       
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
     private Timer coreTime;                                         //timer for saving cursor and key pressed
@@ -62,6 +64,7 @@ public class GUIClass extends javax.swing.JFrame {
     private Runnable collectCursor;                                 //collect the cursor 
     private Runnable refreshData;                                   //automatically refresh data every 15 mins
     private ScheduledExecutorService executor;                      //for running the collectCursor and refreshData
+    private ScheduledExecutorService taskTimer;                      //for running the Task timer
     private DecimalFormat numberFormat = new DecimalFormat("#,###.##"); //format for printing number (1,234.56)
     private Transaction currentTx;                                  //currently search transaction                               
     private Questionnaire questionPanel;
@@ -77,7 +80,7 @@ public class GUIClass extends javax.swing.JFrame {
         cursorLocations = new ArrayList<>();
         keysPressed = new ArrayList<>();
         dataCheckingStage = 0;
-        stackData = new ArrayList<>();
+        stackData = new ArrayList<>();        
         
         //collect key pressed
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
@@ -350,66 +353,8 @@ public class GUIClass extends javax.swing.JFrame {
     }
 
     //save the result of confirmation
-    public void saveResult(boolean confirm) {
-        String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
-        String event = confirm ? "Confirm" : "Report";
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-        String amountDue = numberFormat.format(currentTx.getAmountDue());
-        String transfer = numberFormat.format(currentTx.getAmountTransfer());
-        if(isTimeLimit == true) result = "TIME_LIMIT";
-        isTimeLimit = false;
-
-        PrintWriter pw;
-        StringBuilder sb = new StringBuilder();
-        try {
-            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
-            if (!f.exists() || f.isDirectory()) {
-                pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
-                sb.append("Timestamp");
-                sb.append(',');
-                sb.append("Transaction ID");
-                sb.append(',');
-                sb.append("Bank account");
-                sb.append(',');
-                sb.append("Bank account transaction");
-                sb.append(',');
-                sb.append("Amount due");
-                sb.append(',');
-                sb.append("Amount transferred");
-                sb.append(',');
-                sb.append("Confidential level");
-                sb.append(',');
-                sb.append("Event");
-                sb.append(',');
-                sb.append("Result");
-                sb.append('\n');
-            } else {
-                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
-            }
-            sb.append(timestamp);
-            sb.append(',');
-            sb.append(currentTx.getId());
-            sb.append(',');
-            sb.append(currentTx.getAccount());
-            sb.append(',');
-            sb.append(currentTx.getAccount());
-            sb.append(',');
-            sb.append("\"" + amountDue + "\"");
-            sb.append(',');
-            sb.append("\"" + transfer + "\"");
-            sb.append(',');
-            sb.append(jSlider1.getValue());
-            sb.append(',');
-            sb.append(event);
-            sb.append(',');
-            sb.append(result);
-            sb.append('\n');
-            pw.write(sb.toString());
-            pw.close();
-        } catch (IOException e) {
-            System.out.println(e);
-        }              
-        jSlider1.setValue(5);
+    public void saveResult(boolean subbmitResult) {
+        confirm = subbmitResult;
     }
 
     /**
@@ -933,6 +878,69 @@ public class GUIClass extends javax.swing.JFrame {
         if (staffIdTextField.getText().isEmpty() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
+            String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
+        String event = confirm ? "Confirm" : "Report";
+        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+        String amountDue = numberFormat.format(currentTx.getAmountDue());
+        String transfer = numberFormat.format(currentTx.getAmountTransfer());
+        if(isTimeLimit) result = "TIME_LIMIT";
+        isTimeLimit = false;
+        taskTimer.shutdownNow();
+
+        PrintWriter pw;
+        StringBuilder sb = new StringBuilder();
+        try {
+            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
+            if (!f.exists() || f.isDirectory()) {
+                pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
+                sb.append("Timestamp");
+                sb.append(',');
+                sb.append("Transaction ID");
+                sb.append(',');
+                sb.append("Bank account");
+                sb.append(',');
+                sb.append("Bank account transaction");
+                sb.append(',');
+                sb.append("Amount due");
+                sb.append(',');
+                sb.append("Amount transferred");
+                sb.append(',');
+                sb.append("Confidential level");
+                sb.append(',');
+                sb.append("Event");
+                sb.append(',');
+                sb.append("Result");
+                sb.append('\n');
+            } else {
+                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
+            }
+            sb.append(timestamp);
+            sb.append(',');
+            sb.append(currentTx.getId());
+            sb.append(',');
+            sb.append(currentTx.getAccount());
+            sb.append(',');
+            sb.append(currentTx.getAccount());
+            sb.append(',');
+            sb.append("\"" + amountDue + "\"");
+            sb.append(',');
+            sb.append("\"" + transfer + "\"");
+            sb.append(',');
+            sb.append(jSlider1.getValue());
+            sb.append(',');
+            sb.append(event);
+            sb.append(',');
+            sb.append(result);
+            sb.append('\n');
+            pw.write(sb.toString());
+            pw.close();
+        } catch (IOException e) {
+            System.out.println(e);
+        }              
+        jSlider1.setValue(5);
+            
+            
+            
             //showingData.remove((Integer) selectedId);
             showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
             transactionSet.remove(currentTx.getId());                           //also from the transaction set
@@ -976,9 +984,8 @@ public class GUIClass extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(rootPane, "Transaction ID must be a number!", "Error", ERROR_MESSAGE);
             }
         }
-        ScheduledExecutorService scheduler
-                            = Executors.newSingleThreadScheduledExecutor();
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
                 transactionSet.remove(currentTx.getId());                           //also from the transaction set
@@ -991,12 +998,13 @@ public class GUIClass extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
                 isTimeLimit = true;
                 saveResult(true);
+                taskTimer.shutdownNow();
             }
         };
- 
         int delay = Integer.parseInt(timeLimitField.getText());
-        scheduler.schedule(task, delay, TimeUnit.SECONDS);
-        scheduler.shutdown();
+//        taskTimer.schedule(task, delay, TimeUnit.SECONDS);
+        taskTimer = Executors.newScheduledThreadPool(1);
+        taskTimer.scheduleAtFixedRate(task, delay, delay, TimeUnit.SECONDS);
     }//GEN-LAST:event_go2ButtonActionPerformed
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
@@ -1115,7 +1123,6 @@ public class GUIClass extends javax.swing.JFrame {
         double transfer;
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
-
         int txID;
         transactionSet = new HashMap<>();
         transactionSet.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
