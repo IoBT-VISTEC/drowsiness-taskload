@@ -14,6 +14,7 @@ public class Transaction {
     private String type;
     private String bank;
     private String account;
+    private String accountTx;
     private String owner;
     private double amountDue;
     private double amountTransfer;
@@ -74,6 +75,14 @@ public class Transaction {
         this.amountTransfer = amountTransfer;
     }
 
+    public String getAccountTx() {
+        return accountTx;
+    }
+
+    public void setAccountTx(String showAccount) {
+        this.accountTx = showAccount;
+    }
+
     public Transaction(int id, String type, String bank, String account) {
         this.id = id;
         this.type = type;
@@ -90,4 +99,16 @@ public class Transaction {
         this.amountDue = amountDue;
         this.amountTransfer = amountTransfer;
     }
+
+    public Transaction(int id, String type, String bank, String account, String accountTx, String owner, double amountDue, double amountTransfer) {
+        this.id = id;
+        this.type = type;
+        this.bank = bank;
+        this.account = account;
+        this.accountTx = accountTx;
+        this.owner = owner;
+        this.amountDue = amountDue;
+        this.amountTransfer = amountTransfer;
+    }
+    
 }

@@ -32,8 +32,6 @@ import java.util.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
-import javax.swing.*;
-import java.awt.event.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -254,7 +252,7 @@ public class GUIClass extends javax.swing.JFrame {
     public boolean isTxidCorrect(int txid) {
         if (isDuplicate(txid) && transactionSet.get(txid) != null) {
             currentTx = transactionSet.get(txid);
-            accountTextField.setText(currentTx.getAccount());
+            accountTextField.setText(currentTx.getAccountTx());
             ownerTextField.setText(currentTx.getOwner());
             amountTextField.setText(numberFormat.format(currentTx.getAmountDue()));
             transferTextField.setText(numberFormat.format(currentTx.getAmountTransfer()));
@@ -878,7 +876,7 @@ public class GUIClass extends javax.swing.JFrame {
         if (staffIdTextField.getText().isEmpty() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
-            String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
+            String result = (currentTx.getAmountDue() == currentTx.getAmountTransfer() && currentTx.getAccount() == currentTx.getAccountTx()) ^ confirm ? "FALSE" : "TRUE";
             String event = confirm ? "Confirm" : "Report";
             String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
             String amountDue = numberFormat.format(currentTx.getAmountDue());
@@ -920,7 +918,7 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append(',');
                 sb.append(currentTx.getAccount());
                 sb.append(',');
-                sb.append(currentTx.getAccount());
+                sb.append(currentTx.getAccountTx());
                 sb.append(',');
                 sb.append("\"" + amountDue + "\"");
                 sb.append(',');
@@ -1188,7 +1186,9 @@ public class GUIClass extends javax.swing.JFrame {
 
         Random rd = new Random();
 
-        long startId = 11132334800l;
+        long startBankAccount = 11132334800l;
+        String bankAccount;
+        String rdBankAccount;
         double amount;
         double transfer;
         staff = new StaffAccount();
@@ -1199,6 +1199,9 @@ public class GUIClass extends javax.swing.JFrame {
         transactionSet.put(1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
         transactionSet.put(1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
         for (int i = 0; i < 300; i++) {
+            txID = 1137 + i;
+            bankAccount = String.valueOf(startBankAccount + (3 * i));
+
             String type, bank;
             if (i % 5 == 0) {
                 bank = "SCB";
@@ -1217,12 +1220,20 @@ public class GUIClass extends javax.swing.JFrame {
 
             amount = rd.nextDouble() * 50000;
             transfer = rd.nextDouble() * (amount / 2);
-
             if (rd.nextInt(2) == 1) {
                 transfer = 0;
             }
-            txID = 1137 + i;
-            transactionSet.put(txID, new Transaction(txID, type, bank, startId + (3 * i) + "", "Dummy " + i, amount, amount - transfer));
+            
+            //25% for incorrect bank account
+            if (rd.nextInt(3) == 0) {
+                rdBankAccount = String.format("%d",10000000000l + (long)(rd.nextDouble()*10000000000l));
+                System.out.println(rdBankAccount);
+            }else{
+                rdBankAccount = bankAccount;
+            }
+            
+            
+            transactionSet.put(txID, new Transaction(txID, type, bank, bankAccount, rdBankAccount, "Dummy " + i, amount, amount - transfer));
 
         }
 
