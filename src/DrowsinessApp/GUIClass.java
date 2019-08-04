@@ -744,7 +744,7 @@ public class GUIClass extends javax.swing.JFrame {
         jLabel2.setText("Not at all");
 
         staffPwdLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        staffPwdLabel1.setText("Confidential Level");
+        staffPwdLabel1.setText("Confidence Level");
 
         javax.swing.GroupLayout staffPanelLayout = new javax.swing.GroupLayout(staffPanel);
         staffPanel.setLayout(staffPanelLayout);
