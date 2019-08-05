@@ -905,6 +905,8 @@ public class GUIClass extends javax.swing.JFrame {
                     sb.append(',');
                     sb.append("Confidential level");
                     sb.append(',');
+                    sb.append("Remaining Transaction");
+                    sb.append(',');
                     sb.append("Event");
                     sb.append(',');
                     sb.append("Result");
@@ -925,6 +927,8 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append("\"" + transfer + "\"");
                 sb.append(',');
                 sb.append(jSlider1.getValue());
+                sb.append(',');
+                sb.append(showingData.size());
                 sb.append(',');
                 sb.append(event);
                 sb.append(',');
@@ -1012,6 +1016,8 @@ public class GUIClass extends javax.swing.JFrame {
                                     sb.append(',');
                                     sb.append("Confidential level");
                                     sb.append(',');
+                                    sb.append("Remaining transaction");
+                                    sb.append(',');
                                     sb.append("Event");
                                     sb.append(',');
                                     sb.append("Result");
@@ -1031,7 +1037,9 @@ public class GUIClass extends javax.swing.JFrame {
                                 sb.append(',');
                                 sb.append("\"" + transfer + "\"");
                                 sb.append(',');
-                                sb.append(jSlider1.getValue());
+                                sb.append(jSlider1.getValue());                                
+                                sb.append(',');
+                                sb.append(showingData.size());
                                 sb.append(',');
                                 sb.append(event);
                                 sb.append(',');
