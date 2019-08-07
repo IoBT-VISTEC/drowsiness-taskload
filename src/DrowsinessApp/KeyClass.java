@@ -12,10 +12,12 @@ package DrowsinessApp;
 class KeyClass {
     private String key;
     private String timePoint;
+    private String type;
 
-    public KeyClass(String key, String timePoint) {
+    public KeyClass(String key, String timePoint, String type) {
         this.key = key;
         this.timePoint = timePoint;
+        this.type = type;
     }
 
     public String getKey() {
@@ -24,6 +26,14 @@ class KeyClass {
 
     public void setKey(String key) {
         this.key = key;
+    }
+    
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getTimePoint() {

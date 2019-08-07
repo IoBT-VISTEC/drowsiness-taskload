@@ -85,41 +85,62 @@ public class GUIClass extends javax.swing.JFrame {
                 .addKeyEventDispatcher(new KeyEventDispatcher() {
                     @Override
                     public boolean dispatchKeyEvent(KeyEvent e) {
-                        if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Backspace detected");
-                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_DELETE && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Delete");
-                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_UP && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Up");
-                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_DOWN && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Down");
-                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_LEFT && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Left");
-                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_RIGHT && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Right");
-                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_TAB && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Tab");
-                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if( e.getKeyChar() == KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED){
-                            System.out.println("Enter");
-                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
-                        else if (e.getID() == KeyEvent.KEY_PRESSED ) {
-                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date())));
-                        }
+                        if(e.getID() == KeyEvent.KEY_TYPED)
+                            if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
+                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_DELETE){
+                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_UP){
+                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_DOWN){
+                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_LEFT){
+                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
+                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_TAB){
+                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_ENTER){
+                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                            else {
+                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
+                        else if(e.getID() == KeyEvent.KEY_RELEASED)
+                            if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
+                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_DELETE){
+                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_UP){
+                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_DOWN){
+                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_LEFT){
+                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
+                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_TAB){
+                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_ENTER){
+                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else {
+                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
                         return false;
                     }
                 });
@@ -297,6 +318,8 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append("Timestamp");
                 sb.append(',');
                 sb.append("Key");
+                sb.append(',');
+                sb.append("Type");
                 sb.append('\n');
             } else {
                 pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_key.csv", true));
@@ -305,6 +328,8 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append(k.getTimePoint());
                 sb.append(',');
                 sb.append(k.getKey());
+                sb.append(',');
+                sb.append(k.getType());
                 sb.append('\n');
             }
             pw.write(sb.toString());
