@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -46,8 +48,8 @@ public class GUIClass extends javax.swing.JFrame {
     private static CardLayout card;                                 //for swapping the pages
     private static HashMap<Integer, Transaction> transactionSet;    //store all transactions
     private static StaffAccount staff;                              //all staff accounts
-    private List<Point> cursorLocations;                            //list of cursor's location (Point x, y)
-    private List<KeyClass> keysPressed;                             //list of KeyClass
+    private CopyOnWriteArrayList<Point> cursorLocations;                            //list of cursor's location (Point x, y)
+    private CopyOnWriteArrayList<KeyClass> keysPressed;                             //list of KeyClass
     private List<Integer> showingData;                              //indexes of transactions that showing on the table
     private List<Integer> stackData;                                //list of transactions that will be fetched when clicking update
     private String fileName;                                        //file name
@@ -75,8 +77,8 @@ public class GUIClass extends javax.swing.JFrame {
         card = (CardLayout) mainPanel.getLayout();
         setTableHeader();
         setTableData();
-        cursorLocations = new ArrayList<>();
-        keysPressed = new ArrayList<>();
+        cursorLocations = new CopyOnWriteArrayList<>();
+        keysPressed = new CopyOnWriteArrayList<>();
         dataCheckingStage = 0;
         stackData = new ArrayList<>();        
         
@@ -1129,8 +1131,8 @@ public class GUIClass extends javax.swing.JFrame {
                         public void run() {
                             saveKeyPressed();
                             saveCursorLocation();
-                            cursorLocations = new ArrayList<>();
-                            keysPressed = new ArrayList<>();
+                            cursorLocations = new CopyOnWriteArrayList<>();
+                            keysPressed = new CopyOnWriteArrayList<>();
                         }
                     }, 1000, 1000);
                     
