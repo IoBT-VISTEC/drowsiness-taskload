@@ -10,6 +10,8 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.swing.JSlider;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -38,6 +41,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.basic.BasicSliderUI;
 
 /**
  *
@@ -112,6 +116,9 @@ public class GUIClass extends javax.swing.JFrame {
                             else if( e.getKeyChar() == KeyEvent.VK_ENTER){
                                 keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
                             }
+                            else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
+                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                            }
                             else {
                                 keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
                             }
@@ -139,6 +146,9 @@ public class GUIClass extends javax.swing.JFrame {
                             }
                             else if( e.getKeyChar() == KeyEvent.VK_ENTER){
                                 keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                            }
+                            else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
+                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
                             }
                             else {
                                 keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
@@ -200,6 +210,16 @@ public class GUIClass extends javax.swing.JFrame {
                 jTextField1.setText(String.valueOf(jSlider1.getValue()));
             }
         });
+        jSlider1.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mousePressed(MouseEvent e) {
+       JSlider sourceSlider=(JSlider)e.getSource();
+       BasicSliderUI ui = (BasicSliderUI)sourceSlider.getUI();
+       int value = ui.valueForXPosition( e.getX() );
+       jSlider1.setValue(value);
+    }
+});
+
     }
 
     
