@@ -991,7 +991,7 @@ public class GUIClass extends javax.swing.JFrame {
             //showingData.remove((Integer) selectedId);
             showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
             transactionSet.remove(currentTx.getId());                           //also from the transaction set
-            autoSetTable(true);                                                
+            //autoSetTable(true);                                                
             card.show(mainPanel, "txPanel");
             enterTxidTextField.setText("");
             isTxShown = false;
