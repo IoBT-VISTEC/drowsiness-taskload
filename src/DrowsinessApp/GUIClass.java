@@ -1176,7 +1176,8 @@ public class GUIClass extends javax.swing.JFrame {
                             }
                             stackData.add(keys.get(randIdx));
                         }
-                    }, (7 + new Random().nextInt(8)) * 1000, (7 + new Random().nextInt(8)) * 1000);
+                    //}, (7 + new Random().nextInt(8)) * 1000, (7 + new Random().nextInt(8)) * 1000);
+                    }, 30 * 1000, 30 * 1000);
                     executor = Executors.newScheduledThreadPool(2);
                     executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
                     executor.scheduleAtFixedRate(refreshData, 15, 15, TimeUnit.MINUTES);
