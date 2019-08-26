@@ -196,6 +196,7 @@ public class GUIClass extends javax.swing.JFrame {
                 try {
                     jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
                 } catch (Exception e) {
+                    JOptionPane.showMessageDialog(rootPane, e, "Error", ERROR_MESSAGE);
                     System.out.println(e);
                 }
             }
