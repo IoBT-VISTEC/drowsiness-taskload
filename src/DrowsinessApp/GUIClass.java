@@ -262,10 +262,18 @@ public class GUIClass extends javax.swing.JFrame {
                 showingData.add(idx);
             }
             stackData = new ArrayList<>();
+            System.out.println(showingData.size());
         }
+//        System.out.println(showingData.size() + transactionSet.size());
+//        System.out.println("===============================");
         for (Integer idx : showingData) {
             tmp = transactionSet.get(idx);
+            try{
             model.insertRow(i++, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
+            }
+            catch(Exception e){
+                System.out.println("Error in autoSetTable " + e);
+            }
         }
     }
 
