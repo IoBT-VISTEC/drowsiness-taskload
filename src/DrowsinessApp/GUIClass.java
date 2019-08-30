@@ -1198,7 +1198,9 @@ public class GUIClass extends javax.swing.JFrame {
             }
             staffNoField.setText("");
         } else if (dataCheckingStage == 1) {
-            startButton.setText("Start data checking");
+            if (JOptionPane.showConfirmDialog( this,"Are you sure you want to stop tracking and close the application","Drowsiness App",
+            JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+                            startButton.setText("Start data checking");
             go2Button.setEnabled(true);
             coreTime.cancel();
             questionnaireTime.cancel();
@@ -1208,6 +1210,9 @@ public class GUIClass extends javax.swing.JFrame {
             //selectedId = -1;
             currentTx = null;
             setTableData();
+            System.exit(0);
+
+            }
         }
 
     }//GEN-LAST:event_startButtonActionPerformed
