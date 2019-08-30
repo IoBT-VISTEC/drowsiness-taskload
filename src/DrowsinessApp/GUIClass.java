@@ -196,7 +196,7 @@ public class GUIClass extends javax.swing.JFrame {
                 try {
                     jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(rootPane, e, "Error", ERROR_MESSAGE);
+//                    JOptionPane.showMessageDialog(rootPane, e, "Error", ERROR_MESSAGE);
                     System.out.println(e);
                 }
             }
@@ -273,7 +273,7 @@ public class GUIClass extends javax.swing.JFrame {
             model.insertRow(i++, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
             }
             catch(Exception e){
-                System.out.println("Error in autoSetTable " + e);
+//                System.out.println("Error in autoSetTable " + e);
             }
         }
     }
