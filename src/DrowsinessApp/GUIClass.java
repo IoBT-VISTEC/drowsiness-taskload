@@ -6,7 +6,6 @@
 package DrowsinessApp;
 
 import java.awt.CardLayout;
-import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.event.KeyEvent;
@@ -31,21 +30,19 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import java.util.Timer;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.JSlider;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 
 /**
  *
- * @author guygu
+ * @author saguywalker
  */
 public class GUIClass extends javax.swing.JFrame {
 
@@ -88,89 +85,80 @@ public class GUIClass extends javax.swing.JFrame {
         
         //collect key pressed
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
-                .addKeyEventDispatcher(new KeyEventDispatcher() {
-                    @Override
-                    public boolean dispatchKeyEvent(KeyEvent e) {
-                        if(e.getID() == KeyEvent.KEY_TYPED)
-                            if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
-                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_DELETE){
-                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_UP){
-                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_DOWN){
-                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_LEFT){
-                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
-                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_TAB){
-                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_ENTER){
-                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
-                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                            else {
-                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
-                            }
-                        else if(e.getID() == KeyEvent.KEY_RELEASED)
-                            if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
-                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_DELETE){
-                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_UP){
-                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_DOWN){
-                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_LEFT){
-                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
-                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_TAB){
-                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_ENTER){
-                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
-                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                            else {
-                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
-                            }
-                        return false;
-                    }
-                });
+                .addKeyEventDispatcher((KeyEvent e) -> {
+                    if(e.getID() == KeyEvent.KEY_TYPED)
+                        if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
+                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DELETE){
+                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_UP){
+                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DOWN){
+                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_LEFT){
+                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
+                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_TAB){
+                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_ENTER){
+                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
+                            keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                        else {
+                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Typed"));
+                        }
+                    else if(e.getID() == KeyEvent.KEY_RELEASED)
+                        if(e.getKeyChar() == KeyEvent.VK_BACK_SPACE){
+                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DELETE){
+                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_UP){
+                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_DOWN){
+                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_LEFT){
+                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_RIGHT){
+                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_TAB){
+                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_ENTER){
+                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else if( e.getKeyChar() == KeyEvent.VK_CAPS_LOCK){
+                            keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                        else {
+                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()),"Released"));
+                        }
+                    return false;
+        });
 
         //collect the cursor's location
-        collectCursor = new Runnable() {
-            @Override
-            public void run() {
-                addCursorLocation("");
-            }
+        collectCursor = () -> {
+            addCursorLocation("");
         };
 
         //refresh showing table every 15 mins
-        refreshData = new Runnable() {
-            @Override
-            public void run() {
-                autoSetTable(true);
-            }
+        refreshData = () -> {
+            autoSetTable(true);
         };
 
         questionPanel = new Questionnaire();
@@ -195,7 +183,7 @@ public class GUIClass extends javax.swing.JFrame {
             protected void updateFieldState() {
                 try {
                     jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
-                } catch (Exception e) {
+                } catch (NumberFormatException e) {
 //                    JOptionPane.showMessageDialog(rootPane, e, "Error", ERROR_MESSAGE);
                     System.out.println(e);
                 }
@@ -205,11 +193,9 @@ public class GUIClass extends javax.swing.JFrame {
 
         jTextField1.getDocument().addDocumentListener(dl);
 
-        jSlider1.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent event) {
-                addCursorLocation("Confident_Slider_" + String.valueOf(jSlider1.getValue()));
-                jTextField1.setText(String.valueOf(jSlider1.getValue()));
-            }
+        jSlider1.addChangeListener((ChangeEvent event) -> {
+            addCursorLocation("Confident_Slider_" + String.valueOf(jSlider1.getValue()));
+            jTextField1.setText(String.valueOf(jSlider1.getValue()));
         });
         jSlider1.addMouseListener(new MouseAdapter() {
     @Override
@@ -259,9 +245,9 @@ public class GUIClass extends javax.swing.JFrame {
         int i = 0;
         Transaction tmp;
         if (update) {
-            for (Integer idx : stackData) {
+            stackData.forEach((idx) -> {
                 showingData.add(idx);
-            }
+            });
             stackData = new ArrayList<>();
             System.out.println(showingData.size());
         }
@@ -292,10 +278,8 @@ public class GUIClass extends javax.swing.JFrame {
 
     //check for the duplicate of transaction idx in the showing table
     public boolean isDuplicate(int num) {
-        for (int idx : showingData) {
-            if (idx == num) {
-                return true;
-            }
+        if (showingData.stream().anyMatch((idx) -> (idx == num))) {
+            return true;
         }
         return false;
     }
@@ -355,14 +339,20 @@ public class GUIClass extends javax.swing.JFrame {
             } else {
                 pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_key.csv", true));
             }
-            for (KeyClass k : keysPressed) {
+            keysPressed.stream().map((k) -> {
                 sb.append(k.getTimePoint());
+                return k;
+            }).map((k) -> {
                 sb.append(',');
                 sb.append(k.getKey());
+                return k;
+            }).map((k) -> {
                 sb.append(',');
                 sb.append(k.getType());
+                return k;
+            }).forEachOrdered((_item) -> {
                 sb.append('\n');
-            }
+            });
             pw.write(sb.toString());
             pw.close();
         } catch (IOException e) {
@@ -389,16 +379,24 @@ public class GUIClass extends javax.swing.JFrame {
             } else {
                 pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_cursor.csv", true));
             }
-            for (Point p : cursorLocations) {
+            cursorLocations.stream().map((p) -> {
                 sb.append(p.getTimePoint());
+                return p;
+            }).map((p) -> {
                 sb.append(',');
                 sb.append(p.getX());
+                return p;
+            }).map((p) -> {
                 sb.append(',');
                 sb.append(p.getY());
+                return p;
+            }).map((p) -> {
                 sb.append(',');
                 sb.append(p.getEvent());
+                return p;
+            }).forEachOrdered((_item) -> {
                 sb.append('\n');
-            }
+            });
             pw.write(sb.toString());
             pw.close();
         } catch (IOException e) {
@@ -932,7 +930,7 @@ public class GUIClass extends javax.swing.JFrame {
         if (staffIdTextField.getText().isEmpty() || staffPwdField.getPassword().length == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please enter both username and password!", "Error", ERROR_MESSAGE);
         } else if (staff.isAuthen(staffIdTextField.getText(), staffPwdField.getPassword())) {   //authenticate the username and password
-            String result = (currentTx.getAmountDue() == currentTx.getAmountTransfer() && currentTx.getAccount() == currentTx.getAccountTx()) ^ confirm ? "FALSE" : "TRUE";
+            String result = (currentTx.getAmountDue() == currentTx.getAmountTransfer() && currentTx.getAccount().equals(currentTx.getAccountTx())) ^ confirm ? "FALSE" : "TRUE";
             String event = confirm ? "Confirm" : "Report";
             String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
             String amountDue = numberFormat.format(currentTx.getAmountDue());
@@ -978,9 +976,9 @@ public class GUIClass extends javax.swing.JFrame {
                 sb.append(',');
                 sb.append(currentTx.getAccountTx());
                 sb.append(',');
-                sb.append("\"" + amountDue + "\"");
+                sb.append("\"").append(amountDue).append("\"");
                 sb.append(',');
-                sb.append("\"" + transfer + "\"");
+                sb.append("\"").append(transfer).append("\"");
                 sb.append(',');
                 sb.append(jSlider1.getValue());
                 sb.append(',');
@@ -1040,86 +1038,83 @@ public class GUIClass extends javax.swing.JFrame {
                 else{
                     go2Button.setEnabled(false);
                     int delay = Integer.parseInt(timeLimitField.getText());
-                    Runnable task = new Runnable() {
-                        @Override
-                        public void run() {
-                            isTimeLimit = true;
-                            String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
-                            String event = confirm ? "Confirm" : "Report";
-                            String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
-                            String amountDue = numberFormat.format(currentTx.getAmountDue());
-                            String transfer = numberFormat.format(currentTx.getAmountTransfer());
-                            if(isTimeLimit) result = "TIME_LIMIT";
-                            isTimeLimit = false;
-                            taskTimer.shutdownNow();
-                            PrintWriter pw;
-                            StringBuilder sb = new StringBuilder();
-                            try {
-                                File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
-                                if (!f.exists() || f.isDirectory()) {
-                                    pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
-                                    sb.append("Timestamp");
-                                    sb.append(',');
-                                    sb.append("Transaction ID");
-                                    sb.append(',');
-                                    sb.append("Bank account");
-                                    sb.append(',');
-                                    sb.append("Bank account transaction");
-                                    sb.append(',');
-                                    sb.append("Amount due");
-                                    sb.append(',');
-                                    sb.append("Amount transferred");
-                                    sb.append(',');
-                                    sb.append("Confidential level");
-                                    sb.append(',');
-                                    sb.append("Remaining transaction");
-                                    sb.append(',');
-                                    sb.append("Event");
-                                    sb.append(',');
-                                    sb.append("Result");
-                                    sb.append('\n');
-                                } else {
-                                    pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
-                                }
-                                sb.append(timestamp);
+                    Runnable task = () -> {
+                        isTimeLimit = true;
+                        String result = currentTx.getAmountDue() == currentTx.getAmountTransfer() ^ confirm ? "FALSE" : "TRUE";
+                        String event = confirm ? "Confirm" : "Report";
+                        String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
+                        String amountDue = numberFormat.format(currentTx.getAmountDue());
+                        String transfer = numberFormat.format(currentTx.getAmountTransfer());
+                        if(isTimeLimit) result = "TIME_LIMIT";
+                        isTimeLimit = false;
+                        taskTimer.shutdownNow();
+                        PrintWriter pw;
+                        StringBuilder sb = new StringBuilder();
+                        try {
+                            File f = new File(System.getProperty("user.dir") + "/" + fileName + "_result.csv");
+                            if (!f.exists() || f.isDirectory()) {
+                                pw = new PrintWriter(new FileWriter(fileName + "_result.csv"));
+                                sb.append("Timestamp");
                                 sb.append(',');
-                                sb.append(currentTx.getId());
+                                sb.append("Transaction ID");
                                 sb.append(',');
-                                sb.append(currentTx.getAccount());
+                                sb.append("Bank account");
                                 sb.append(',');
-                                sb.append(currentTx.getAccount());
+                                sb.append("Bank account transaction");
                                 sb.append(',');
-                                sb.append("\"" + amountDue + "\"");
+                                sb.append("Amount due");
                                 sb.append(',');
-                                sb.append("\"" + transfer + "\"");
+                                sb.append("Amount transferred");
                                 sb.append(',');
-                                sb.append(jSlider1.getValue());                                
+                                sb.append("Confidential level");                                
                                 sb.append(',');
-                                sb.append(showingData.size());
+                                sb.append("Remaining transaction");
                                 sb.append(',');
-                                sb.append(event);
+                                sb.append("Event");
                                 sb.append(',');
-                                sb.append(result);
+                                sb.append("Result");
                                 sb.append('\n');
-                                pw.write(sb.toString());
-                                pw.close();
-                            } catch (IOException e) {
-                                System.out.println(e);
-                            }              
-                            jSlider1.setValue(5);
-
-                            showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
-                            transactionSet.remove(currentTx.getId());                           //also from the transaction set
-                            autoSetTable(true);                                                
-                            card.show(mainPanel, "txPanel");
-                            enterTxidTextField.setText("");
-                            isTxShown = false;
-                            clearStaffPage();
-                            clearTransactionPage();
-                            JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
-                            isStartTask = false;
-                            go2Button.setEnabled(true);
+                            } else {
+                                pw = new PrintWriter(new FileWriter(System.getProperty("user.dir") + "/" + fileName + "_result.csv", true));
+                            }
+                            sb.append(timestamp);
+                            sb.append(',');
+                            sb.append(currentTx.getId());
+                            sb.append(',');
+                            sb.append(currentTx.getAccount());
+                            sb.append(',');
+                            sb.append(currentTx.getAccount());
+                            sb.append(',');
+                            sb.append("\"").append(amountDue).append("\"");
+                            sb.append(',');
+                            sb.append("\"").append(transfer).append("\"");
+                            sb.append(',');
+                            sb.append(jSlider1.getValue());
+                            sb.append(',');
+                            sb.append(showingData.size());
+                            sb.append(',');
+                            sb.append(event);
+                            sb.append(',');
+                            sb.append(result);
+                            sb.append('\n');
+                            pw.write(sb.toString());
+                            pw.close();
+                        } catch (IOException e) {
+                            System.out.println(e);
                         }
+                        jSlider1.setValue(5);
+                        
+                        showingData.remove((Integer) currentTx.getId());                    //remove the confirmed transaction from the showingData
+                        transactionSet.remove(currentTx.getId());                           //also from the transaction set
+                        autoSetTable(true);
+                        card.show(mainPanel, "txPanel");
+                        enterTxidTextField.setText("");
+                        isTxShown = false;
+                        clearStaffPage();
+                        clearTransactionPage();
+                        JOptionPane.showMessageDialog(rootPane, "Time limit!", "Error", ERROR_MESSAGE);
+                        isStartTask = false;
+                        go2Button.setEnabled(true);
                     };
                     taskTimer = Executors.newScheduledThreadPool(1);
                     if(isStartTask){
@@ -1207,7 +1202,6 @@ public class GUIClass extends javax.swing.JFrame {
             executor.shutdownNow();
 
             dataCheckingStage = 0;
-            //selectedId = -1;
             currentTx = null;
             setTableData();
             System.exit(0);
@@ -1308,10 +1302,8 @@ public class GUIClass extends javax.swing.JFrame {
         }
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new GUIClass().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new GUIClass().setVisible(true);
         });
         // ************** END POPUP
     }

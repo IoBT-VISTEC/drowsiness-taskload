@@ -13,10 +13,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -56,7 +54,7 @@ public class Questionnaire extends javax.swing.JFrame {
             protected void updateFieldState() {
                 try {
                     jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
-                } catch (Exception e) {
+                } catch (NumberFormatException e) {
                     System.out.println(e);
                 }
             }
@@ -65,11 +63,9 @@ public class Questionnaire extends javax.swing.JFrame {
 
         jTextField1.getDocument().addDocumentListener(dl);
 
-        jSlider1.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent event) {
-                saveCursorLocation("Questionaire_Slider_value_" + String.valueOf(jSlider1.getValue()));
-                jTextField1.setText(String.valueOf(jSlider1.getValue()));
-            }
+        jSlider1.addChangeListener((ChangeEvent event) -> {
+            saveCursorLocation("Questionaire_Slider_value_" + String.valueOf(jSlider1.getValue()));
+            jTextField1.setText(String.valueOf(jSlider1.getValue()));
         });
         jTextArea1.setLineWrap(true);
         jTextArea1.setOpaque(false);
