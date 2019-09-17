@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import java.util.Timer;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.JSlider;
@@ -39,6 +38,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicSliderUI;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 /**
  *
@@ -58,7 +58,6 @@ public class GUIClass extends javax.swing.JFrame {
     private boolean isTimeLimit = false;
     private boolean isStartTask = false;
     private boolean confirm = false;
-    //private int selectedId;                                       //currently searching id                       
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
     private Timer coreTime;                                         //timer for saving cursor and key pressed
     private Timer questionnaireTime;
@@ -88,48 +87,70 @@ public class GUIClass extends javax.swing.JFrame {
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
                 .addKeyEventDispatcher((KeyEvent e) -> {
                     if (e.getID() == KeyEvent.KEY_TYPED) {
-                        if (e.getKeyChar() == KeyEvent.VK_BACK_SPACE) {
-                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_DELETE) {
-                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_UP) {
-                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_DOWN) {
-                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_LEFT) {
-                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_RIGHT) {
-                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_TAB) {
-                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_CAPS_LOCK) {
-                            keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
-                        } else {
-                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                        switch (e.getKeyChar()) {
+                            case KeyEvent.VK_BACK_SPACE:
+                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_DELETE:
+                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_UP:
+                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_DOWN:
+                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_LEFT:
+                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_RIGHT:
+                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_TAB:
+                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_ENTER:
+                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            case KeyEvent.VK_CAPS_LOCK:
+                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
+                            default:
+                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Typed"));
+                                break;
                         }
                     } else if (e.getID() == KeyEvent.KEY_RELEASED) {
-                        if (e.getKeyChar() == KeyEvent.VK_BACK_SPACE) {
-                            keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_DELETE) {
-                            keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_UP) {
-                            keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_DOWN) {
-                            keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_LEFT) {
-                            keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_RIGHT) {
-                            keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_TAB) {
-                            keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                            keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else if (e.getKeyChar() == KeyEvent.VK_CAPS_LOCK) {
-                            keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
-                        } else {
-                            keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                        switch (e.getKeyChar()) {
+                            case KeyEvent.VK_BACK_SPACE:
+                                keysPressed.add(new KeyClass("Backspace", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_DELETE:
+                                keysPressed.add(new KeyClass("Delete", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_UP:
+                                keysPressed.add(new KeyClass("Up", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_DOWN:
+                                keysPressed.add(new KeyClass("Down", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_LEFT:
+                                keysPressed.add(new KeyClass("Left", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_RIGHT:
+                                keysPressed.add(new KeyClass("Right", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_TAB:
+                                keysPressed.add(new KeyClass("Tab", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_ENTER:
+                                keysPressed.add(new KeyClass("Enter", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            case KeyEvent.VK_CAPS_LOCK:
+                                keysPressed.add(new KeyClass("CAPS", new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
+                            default:
+                                keysPressed.add(new KeyClass(String.valueOf(e.getKeyChar()), new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date()), "Released"));
+                                break;
                         }
                     }
                     return false;
@@ -142,7 +163,11 @@ public class GUIClass extends javax.swing.JFrame {
 
         //refresh showing table every 15 mins
         refreshData = () -> {
-            autoSetTable(true);
+            try {
+                autoSetTable(true);
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
         };
 
         questionPanel = new Questionnaire();
@@ -169,7 +194,7 @@ public class GUIClass extends javax.swing.JFrame {
                     jSlider1.setValue(Integer.parseInt(jTextField1.getText()));
                 } catch (NumberFormatException e) {
 //                    JOptionPane.showMessageDialog(rootPane, e, "Error", ERROR_MESSAGE);
-                    System.out.println(e);
+                    e.printStackTrace(System.out);
                 }
             }
 
@@ -206,7 +231,7 @@ public class GUIClass extends javax.swing.JFrame {
     }
 
     //show transactions with the number of transactions
-    public void setTableData(int num) {
+    public void setTableData(int num) throws Exception {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         List<Integer> keys = new ArrayList<>(transactionSet.keySet());
@@ -215,13 +240,16 @@ public class GUIClass extends javax.swing.JFrame {
         showingData = new ArrayList<>();
         for (int i = 0; i < num; i++) {
             showingData.add(keys.get(i));
+            if (!transactionSet.containsKey(keys.get(i))) {
+                throw new Exception("TransactionSet didn't contain " + keys.get(i));
+            }
             val = transactionSet.get(keys.get(i));
             model.insertRow(i, new Object[]{val.getId(), val.getType(), val.getBank(), val.getAccount()});
         }
     }
 
     //append the data from the stackData to the table
-    public void autoSetTable(boolean update) {
+    public void autoSetTable(boolean update) throws Exception {
         DefaultTableModel model = (DefaultTableModel) txTable.getModel();
         model.setRowCount(0);
         int i = 0;
@@ -231,16 +259,16 @@ public class GUIClass extends javax.swing.JFrame {
                 showingData.add(idx);
             });
             stackData = new ArrayList<>();
-            System.out.println(showingData.size());
         }
-//        System.out.println(showingData.size() + transactionSet.size());
-//        System.out.println("===============================");
         for (Integer idx : showingData) {
+            if (!transactionSet.containsKey(idx)) {
+                throw new Exception("TransactionSet didn't contains " + idx);
+            }
             tmp = transactionSet.get(idx);
             try {
                 model.insertRow(i++, new Object[]{tmp.getId(), tmp.getType(), tmp.getBank(), tmp.getAccount()});
             } catch (Exception e) {
-//                System.out.println("Error in autoSetTable " + e);
+                e.printStackTrace(System.out);
             }
         }
     }
@@ -269,7 +297,7 @@ public class GUIClass extends javax.swing.JFrame {
 
     //check if the transaction id exists
     public boolean isTxidCorrect(int txid) {
-        if (isDuplicate(txid) && transactionSet.get(txid) != null) {
+        if (isDuplicate(txid) && transactionSet.containsKey(txid)) {
             currentTx = transactionSet.get(txid);
             accountTextField.setText(currentTx.getAccountTx());
             ownerTextField.setText(currentTx.getOwner());
@@ -339,7 +367,7 @@ public class GUIClass extends javax.swing.JFrame {
             pw.write(sb.toString());
             pw.close();
         } catch (IOException e) {
-            System.out.println(e);
+            e.printStackTrace(System.out);
         }
     }
 
@@ -383,7 +411,7 @@ public class GUIClass extends javax.swing.JFrame {
             pw.write(sb.toString());
             pw.close();
         } catch (IOException e) {
-            System.out.println(e);
+            e.printStackTrace(System.out);
         }
     }
 
@@ -438,7 +466,6 @@ public class GUIClass extends javax.swing.JFrame {
             //25% for incorrect bank account
             if (rd.nextInt(3) == 0) {
                 rdBankAccount = String.format("%d", 10000000000l + (long) (rd.nextDouble() * 10000000000l));
-                System.out.printf("%d: %s (%s)\n", count++, rdBankAccount, bankAccount);
             } else {
                 rdBankAccount = bankAccount;
             }
@@ -944,8 +971,11 @@ public class GUIClass extends javax.swing.JFrame {
     }//GEN-LAST:event_confirmButtonActionPerformed
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        // TODO add your handling code here:
-        autoSetTable(true);
+        try {
+            autoSetTable(true);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
     }//GEN-LAST:event_refreshButtonActionPerformed
 
     private void reportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportButtonActionPerformed
@@ -1034,13 +1064,16 @@ public class GUIClass extends javax.swing.JFrame {
                 pw.write(sb.toString());
                 pw.close();
             } catch (IOException e) {
-                System.out.println(e);
+                e.printStackTrace(System.out);
             }
             jSlider1.setValue(5);
 
             removeTX(currentTx.getId());
-            autoSetTable(false);
-            
+            try {
+                autoSetTable(false);
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
             card.show(mainPanel, "txPanel");
             enterTxidTextField.setText("");
             isTxShown = false;
@@ -1146,13 +1179,17 @@ public class GUIClass extends javax.swing.JFrame {
                     pw.write(sb.toString());
                     pw.close();
                 } catch (IOException e) {
-                    System.out.println(e);
+                    e.printStackTrace(System.out);
                 }
                 jSlider1.setValue(5);
 
                 removeTX(currentTx.getId());
-                autoSetTable(false);
 
+                try {
+                    autoSetTable(false);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                }
                 card.show(mainPanel, "txPanel");
                 enterTxidTextField.setText("");
                 isTxShown = false;
@@ -1191,8 +1228,11 @@ public class GUIClass extends javax.swing.JFrame {
                     String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS").format(new Date());
                     fileName = startTime.substring(0, 4) + startTime.substring(5, 7) + startTime.substring(8, 10) + "_" + id;
                     dataCheckingStage = 1;
-                    setTableData(15);
-
+                    try {
+                        setTableData(15);
+                    } catch (Exception e) {
+                        e.printStackTrace(System.out);
+                    }
                     coreTime = new java.util.Timer();
                     coreTime.schedule(new TimerTask() {
                         @Override
@@ -1256,11 +1296,9 @@ public class GUIClass extends javax.swing.JFrame {
     }//GEN-LAST:event_startButtonActionPerformed
 
     private void enterTxidTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterTxidTextFieldActionPerformed
-        // TODO add your handling code here:
     }//GEN-LAST:event_enterTxidTextFieldActionPerformed
 
     private void enterTxidTextFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_enterTxidTextFieldMouseClicked
-        // TODO add your handling code here:
         addCursorLocation("Transaction_box");
     }//GEN-LAST:event_enterTxidTextFieldMouseClicked
 
@@ -1282,17 +1320,12 @@ public class GUIClass extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
+        //</editor-fold>
         staff = new StaffAccount();
         staff.addAccount("sky", "skypwd");
 
