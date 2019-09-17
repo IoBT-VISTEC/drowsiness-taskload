@@ -3,9 +3,8 @@
 # Edit at https://www.gitignore.io/?templates=java
 
 # Build properties and java byte code
-build
 build/
-nbproject/
+nbproject/private
 
 ### Java ###
 # Compiled class file
