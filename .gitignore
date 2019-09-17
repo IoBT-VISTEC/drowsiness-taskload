@@ -4,7 +4,8 @@
 
 # Build properties and java byte code
 build
-nbproject
+build/
+nbproject/
 
 ### Java ###
 # Compiled class file
