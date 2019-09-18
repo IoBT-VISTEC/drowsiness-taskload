@@ -423,39 +423,28 @@ public class GUIClass extends javax.swing.JFrame {
     public static void initTransactionSet(int num) {
         Random rd = new Random();
 
+        String[] bankType = new String[]{"SCB", "TMB", "KBANK", "KTB"};
+        String[] txType = new String[]{"Transaction", "Credit"};
+
         long startBankAccount = 11132334800l;
         String bankAccount;
         String rdBankAccount;
         double amount;
         double transfer;
 
-        int count = 1;
-
         int txID;
         transactionSet = new HashMap<>();
-        transactionSet.put(1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
-        transactionSet.put(1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
-        transactionSet.put(1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
-        for (int i = 0; i < num - 3; i++) {
+
+        transactionSet.put(
+                1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
+        transactionSet.put(
+                1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
+        transactionSet.put(
+                1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
+        for (int i = 0;
+                i < num - 3; i++) {
             txID = 1137 + i;
             bankAccount = String.valueOf(startBankAccount + (3 * i));
-
-            String type, bank;
-            if (i % 5 == 0) {
-                bank = "SCB";
-            } else if (i % 7 == 0) {
-                bank = "TMB";
-            } else if (i % 9 == 0) {
-                bank = "KBANK";
-            } else {
-                bank = "KTB";
-            }
-
-            if (i % 3 == 0) {
-                type = "Transaction";
-            } else {
-                type = "Credit";
-            }
 
             amount = rd.nextDouble() * 50000;
             transfer = rd.nextDouble() * (amount / 2);
@@ -470,7 +459,7 @@ public class GUIClass extends javax.swing.JFrame {
                 rdBankAccount = bankAccount;
             }
 
-            transactionSet.put(txID, new Transaction(txID, type, bank, bankAccount, rdBankAccount, "Dummy " + i, amount, amount - transfer));
+            transactionSet.put(txID, new Transaction(txID, txType[rd.nextInt(txType.length)], bankType[rd.nextInt(bankType.length)], bankAccount, rdBankAccount, "Dummy " + i, amount, amount - transfer));
 
         }
     }
@@ -1318,10 +1307,12 @@ public class GUIClass extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(GUIClass.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(GUIClass.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
