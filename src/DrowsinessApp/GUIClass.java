@@ -159,7 +159,7 @@ public class GUIClass extends javax.swing.JFrame {
         //collect the cursor's location
         collectCursor = () -> {
             addCursorLocation("");
-        };
+        };  
 
         //refresh showing table every 15 mins
         refreshData = () -> {
@@ -303,7 +303,6 @@ public class GUIClass extends javax.swing.JFrame {
             ownerTextField.setText(currentTx.getOwner());
             amountTextField.setText(numberFormat.format(currentTx.getAmountDue()));
             transferTextField.setText(numberFormat.format(currentTx.getAmountTransfer()));
-            //selectedId = currentTx.getId();
             isTxShown = true;
 
             return true;
