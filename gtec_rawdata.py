@@ -98,7 +98,7 @@ class MyOVBox(OVBox):
 					# np.savetxt(f, a, delimiter=",", fmt='%5s')
 					for channel in numpyBuffer:
 						channel = np.insert(channel, 0, a, axis=0)
-						print(channel.shape)	
+						# print(channel.shape)	
 						np.savetxt(f, [channel], delimiter=",")
 				#==================Sending to ROS Server==========================#
 				#print(self.counter)
