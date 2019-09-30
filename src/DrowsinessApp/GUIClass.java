@@ -39,7 +39,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
-
+import java.io.File;
+import javax.sound.sampled.*;
 /**
  *
  * @author saguywalker
@@ -1238,6 +1239,23 @@ public class GUIClass extends javax.swing.JFrame {
                         @Override
                         public void run() {
                             questionPanel.setVisible(true);
+                             try{
+                                    final Clip clip = (Clip)AudioSystem.getLine(new Line.Info(Clip.class));
+
+                                    clip.addLineListener(new LineListener(){
+                                        @Override
+                                        public void update(LineEvent event){
+                                            if (event.getType() == LineEvent.Type.STOP)
+                                                clip.close();
+                                        }
+                                    });
+                                    File file = new File("sound.wav");
+                                    clip.open(AudioSystem.getAudioInputStream(file));
+                                    clip.start();
+                                }
+                                catch (Exception exc){
+                                    exc.printStackTrace(System.out);
+                                }
                         }
                     }, 100, 3 * 60 * 1000);
 
