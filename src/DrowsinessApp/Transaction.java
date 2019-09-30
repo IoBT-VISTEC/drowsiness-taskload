@@ -90,16 +90,6 @@ public class Transaction {
         this.account = account;
     }
 
-    public Transaction(int id, String type, String bank, String account, String owner, double amountDue, double amountTransfer) {
-        this.id = id;
-        this.type = type;
-        this.bank = bank;
-        this.account = account;
-        this.owner = owner;
-        this.amountDue = amountDue;
-        this.amountTransfer = amountTransfer;
-    }
-
     public Transaction(int id, String type, String bank, String account, String accountTx, String owner, double amountDue, double amountTransfer) {
         this.id = id;
         this.type = type;

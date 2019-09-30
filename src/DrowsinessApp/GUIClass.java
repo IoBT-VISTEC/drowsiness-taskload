@@ -435,11 +435,11 @@ public class GUIClass extends javax.swing.JFrame {
         transactionSet = new HashMap<>();
 
         transactionSet.put(
-                1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "Luke Skywalker", 65535, 56636));
+                1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "11111111112", "Luke Skywalker", 65535, 56636));
         transactionSet.put(
-                1335, new Transaction(1335, "Credit", "KTB", "11131313111", "Someone", 99.99, 9.99));
+                1335, new Transaction(1335, "Credit", "KTB", "11131313111", "11131313111", "Someone", 99.99, 9.99));
         transactionSet.put(
-                1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "Thayakorn", 32745.75, 32285.5));
+                1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "11132332121", "Thayakorn", 32745.75, 32285.5));
         for (int i = 0;
                 i < num - 3; i++) {
             txID = 1137 + i;
