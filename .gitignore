@@ -35,3 +35,4 @@ hs_err_pid*
 
 # Ignoring logged CSV files
 *.csv
+/dist/
