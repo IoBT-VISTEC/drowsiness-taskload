@@ -11,7 +11,6 @@ import java.awt.MouseInfo;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,6 +40,7 @@ import javax.swing.plaf.basic.BasicSliderUI;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import java.io.File;
 import javax.sound.sampled.*;
+
 /**
  *
  * @author saguywalker
@@ -50,6 +50,9 @@ public class GUIClass extends javax.swing.JFrame {
     private static CardLayout card;                                 //for swapping the pages
     private static HashMap<Integer, Transaction> transactionSet;    //store all transactions
     private static StaffAccount staff;                              //all staff accounts
+    private final Runnable CURSOR_COLLECTING;                       //collect the cursor 
+    private final Runnable DATA_REFRESHING;                         //automatically refresh data every 15 mins
+    private final Questionnaire QUESTION_PANEL;
     private CopyOnWriteArrayList<Point> cursorLocations;            //list of cursor's location (Point x, y)
     private CopyOnWriteArrayList<KeyClass> keysPressed;             //list of KeyClass
     private List<Integer> showingData;                              //indexes of transactions that showing on the table
@@ -62,13 +65,10 @@ public class GUIClass extends javax.swing.JFrame {
     private int dataCheckingStage;                                  //for swapping between start and stop buttons
     private Timer coreTime;                                         //timer for saving cursor and key pressed
     private Timer questionnaireTime;
-    private final Runnable collectCursor;                           //collect the cursor 
-    private final Runnable refreshData;                             //automatically refresh data every 15 mins
     private ScheduledExecutorService executor;                      //for running the collectCursor and refreshData
     private ScheduledExecutorService taskTimer;                     //for running the Task timer
     private DecimalFormat numberFormat = new DecimalFormat("#,###.##"); //format for printing number (1,234.56)
     private Transaction currentTx;                                  //currently search transaction                               
-    private final Questionnaire questionPanel;
 
     /**
      * Creates new form GUIClass
@@ -158,12 +158,12 @@ public class GUIClass extends javax.swing.JFrame {
                 });
 
         //collect the cursor's location
-        collectCursor = () -> {
+        CURSOR_COLLECTING = () -> {
             addCursorLocation("");
-        };  
+        };
 
         //refresh showing table every 15 mins
-        refreshData = () -> {
+        DATA_REFRESHING = () -> {
             try {
                 autoSetTable(true);
             } catch (Exception e) {
@@ -171,7 +171,7 @@ public class GUIClass extends javax.swing.JFrame {
             }
         };
 
-        questionPanel = new Questionnaire();
+        QUESTION_PANEL = new Questionnaire();
 
         DocumentListener dl = new DocumentListener() {
 
@@ -434,16 +434,8 @@ public class GUIClass extends javax.swing.JFrame {
 
         int txID;
         transactionSet = new HashMap<>();
-/*
-        transactionSet.put(
-                1134, new Transaction(1134, "Transaction", "SCB", "11111111112", "11111111112", "Luke Skywalker", 65535, 56636));
-        transactionSet.put(
-                1335, new Transaction(1335, "Credit", "KTB", "11131313111", "11131313111", "Someone", 99.99, 9.99));
-        transactionSet.put(
-                1136, new Transaction(1136, "Transaction", "KBank", "11132332121", "11132332121", "Thayakorn", 32745.75, 32285.5));
- */
-        for (int i = 0;
-                i < num - 3; i++) {
+
+        for (int i = 0; i < num - 3; i++) {
             txID = 1137 + i;
             bankAccount = String.valueOf(startBankAccount + (3 * i));
 
@@ -942,7 +934,6 @@ public class GUIClass extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
-        // TODO add your handling code here:   
         addCursorLocation("Confirm_button");
 
         if (dataCheckingStage == 0) {   //if user doesn't click start button yet
@@ -1076,17 +1067,14 @@ public class GUIClass extends javax.swing.JFrame {
     }//GEN-LAST:event_confirm2ButtonActionPerformed
 
     private void staffPwdFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staffPwdFieldActionPerformed
-        // TODO add your handling code here:
     }//GEN-LAST:event_staffPwdFieldActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        // TODO add your handling code here:
         clearStaffPage();
         card.show(mainPanel, "txPanel");
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void go2ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_go2ButtonActionPerformed
-        // TODO add your handling code here:        
         addCursorLocation("Go_button");
         if (dataCheckingStage == 0) {
             JOptionPane.showMessageDialog(rootPane, "Please press \"start checking data\" first!", "Error", ERROR_MESSAGE);
@@ -1206,7 +1194,6 @@ public class GUIClass extends javax.swing.JFrame {
     }//GEN-LAST:event_go2ButtonActionPerformed
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-        // TODO add your handling code here:
         if (dataCheckingStage == 0) {
             if (staffNoField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(rootPane, "Please enter Staff no.!", "Error", ERROR_MESSAGE);
@@ -1238,24 +1225,21 @@ public class GUIClass extends javax.swing.JFrame {
                     questionnaireTime.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            questionPanel.setVisible(true);
-                             try{
-                                    final Clip clip = (Clip)AudioSystem.getLine(new Line.Info(Clip.class));
+                            QUESTION_PANEL.setVisible(true);
+                            try {
+                                final Clip clip = (Clip) AudioSystem.getLine(new Line.Info(Clip.class));
 
-                                    clip.addLineListener(new LineListener(){
-                                        @Override
-                                        public void update(LineEvent event){
-                                            if (event.getType() == LineEvent.Type.STOP)
-                                                clip.close();
-                                        }
-                                    });
-                                    File file = new File("sound.wav");
-                                    clip.open(AudioSystem.getAudioInputStream(file));
-                                    clip.start();
-                                }
-                                catch (Exception exc){
-                                    exc.printStackTrace(System.out);
-                                }
+                                clip.addLineListener((LineEvent event) -> {
+                                    if (event.getType() == LineEvent.Type.STOP) {
+                                        clip.close();
+                                    }
+                                });
+                                File file = new File("sound.wav");
+                                clip.open(AudioSystem.getAudioInputStream(file));
+                                clip.start();
+                            } catch (IOException | LineUnavailableException | UnsupportedAudioFileException exc) {
+                                exc.printStackTrace(System.out);
+                            }
                         }
                     }, 100, 3 * 60 * 1000);
 
@@ -1271,11 +1255,10 @@ public class GUIClass extends javax.swing.JFrame {
                             }
                             stackData.add(keys.get(randIdx));
                         }
-                        //}, (7 + new Random().nextInt(8)) * 1000, (7 + new Random().nextInt(8)) * 1000);
                     }, 20 * 1000, 20 * 1000);
                     executor = Executors.newScheduledThreadPool(2);
-                    executor.scheduleAtFixedRate(collectCursor, 0, 20, TimeUnit.MILLISECONDS);
-                    executor.scheduleAtFixedRate(refreshData, 15, 15, TimeUnit.MINUTES);
+                    executor.scheduleAtFixedRate(CURSOR_COLLECTING, 0, 20, TimeUnit.MILLISECONDS);
+                    executor.scheduleAtFixedRate(DATA_REFRESHING, 15, 15, TimeUnit.MINUTES);
 
                 } catch (NumberFormatException ne) {
                     staffNoField.setText("");
@@ -1309,9 +1292,6 @@ public class GUIClass extends javax.swing.JFrame {
         addCursorLocation("Transaction_box");
     }//GEN-LAST:event_enterTxidTextFieldMouseClicked
 
-    /**
-     * @param args the command line arguments
-     */
     public static int staffID = 0;
 
     public static void main(String args[]) {
