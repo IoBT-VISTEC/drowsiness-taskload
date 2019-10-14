@@ -5,12 +5,15 @@
  */
 package DrowsinessApp;
 
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+
 import java.awt.CardLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,23 +26,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JOptionPane;
 import java.util.Timer;
-import java.util.concurrent.CopyOnWriteArrayList;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.LineEvent;
+import javax.swing.JOptionPane;
 import javax.swing.JSlider;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicSliderUI;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import java.io.File;
-import javax.sound.sampled.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
 
 /**
  *
@@ -1237,7 +1241,7 @@ public class GUIClass extends javax.swing.JFrame {
                                 File file = new File("sound.wav");
                                 clip.open(AudioSystem.getAudioInputStream(file));
                                 clip.start();
-                            } catch (IOException | LineUnavailableException | UnsupportedAudioFileException exc) {
+                            } catch (Exception exc) {
                                 exc.printStackTrace(System.out);
                             }
                         }
